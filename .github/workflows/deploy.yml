@@ -29,3 +29,5 @@ jobs:
           local-dir: ./deploy/               # 準備したディレクトリをアップロード
           server-dir: /   # サーバーのルートに配置
           dangerous-clean-slate: false
+          exclude: |
+            **/mds/**

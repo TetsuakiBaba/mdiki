@@ -45,6 +45,7 @@ $files = $fm->listFiles();
             display: flex;
             height: 100vh;
             width: 100vw;
+            position: relative;
         }
 
         /* Sidebar Styles */
@@ -56,6 +57,26 @@ $files = $fm->listFiles();
             flex-direction: column;
             flex-shrink: 0;
             transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        #sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
         }
 
         .sidebar-header {
@@ -151,6 +172,21 @@ $files = $fm->listFiles();
             padding: 0 24px;
             border-bottom: 1px solid #dadce0;
             background: white;
+            gap: 12px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .menu-toggle:hover {
+            background-color: #f1f3f4;
         }
 
         .current-file-title {
@@ -158,6 +194,9 @@ $files = $fm->listFiles();
             font-weight: 400;
             color: #3c4043;
             flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         #viewer-container {
@@ -169,6 +208,42 @@ $files = $fm->listFiles();
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            header {
+                padding: 0 12px;
+            }
+
+            .current-file-title {
+                font-size: 16px;
+            }
+
+            .header-actions span {
+                display: none;
+            }
+
+            .header-actions .nav-item {
+                padding: 0 8px !important;
+                width: 36px;
+                justify-content: center;
+            }
         }
 
         /* Scrollbar Styles */
@@ -193,6 +268,7 @@ $files = $fm->listFiles();
 
 <body>
     <div id="app">
+        <div class="sidebar-overlay" id="overlay"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
                 <a href="index.php" class="logo-container">
@@ -230,6 +306,7 @@ $files = $fm->listFiles();
 
         <main id="main-content">
             <header>
+                <button class="material-icons menu-toggle" id="menu-btn">menu</button>
                 <div class="current-file-title">
                     <?= htmlspecialchars(basename($currentFile)) ?>
                 </div>
@@ -247,7 +324,25 @@ $files = $fm->listFiles();
     </div>
 
     <script>
-        // アクティブなアイテムへのスムーズなスクロールや、iframeの読み込み管理などが必要な場合はここに追加
+        const menuBtn = document.getElementById('menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        menuBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // 画面サイズが変わった時にサイドバーの状態をリセット
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        });
     </script>
 </body>
 

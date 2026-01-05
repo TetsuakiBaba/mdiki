@@ -1,6 +1,5 @@
 # mdiki
-
-A simple, lightweight mdiki system with a Finder-like UI.
+A lightweight, file-based wiki system for Markdown documents with a Material Design UI.
 
 ## Features
 - **No Accounts**: Single password access.
@@ -27,33 +26,9 @@ The `public/mds/` directory must be writable by the web server user (e.g., `www-
 chmod -R 775 public/mds/
 chown -R www-data:www-data public/mds/
 ```
-
-### 3. Web Server Configuration
-It is highly recommended to set the document root to the `public/` directory to prevent direct access to system files.
-
-#### Nginx Example
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /path/to/mdiki/public;
-
-    index editor.php;
-
-    location / {
-        try_files $uri $uri/ /editor.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-    }
-}
-```
-
-### 4. Security Recommendations
+### 3. Security Recommendations
 - **HTTPS**: Always use HTTPS to protect your password and session data.
-- **Password**: Change the default password in `config.php` immediately.
+- **Password**: Change the default password in `mdiki-config.php` immediately.
 
 ## Directory Structure
 - `public/`: Web root.
@@ -63,6 +38,12 @@ server {
 - `mdiki-src/`: Backend logic.
 - `mdiki-config.php`: Configuration.
 
+```
+server-root/
+├── mdiki-config.php
+├── mdiki-src/
+└── public/
+```
 ## Security
 - **Auth**: Session-based authentication with a shared password.
 - **CSRF**: Tokens required for all state-changing operations.
