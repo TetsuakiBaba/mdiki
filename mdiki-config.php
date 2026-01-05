@@ -1,0 +1,9 @@
+<?php
+// Configuration for mdiki
+
+return [
+    'password' => 'admin123', // Change this in production
+    'mdiki_root' => __DIR__ . '/public/mds',
+    'session_name' => 'mdiki_session',
+    'session_lifetime' => 43200, // 12 hours
+];

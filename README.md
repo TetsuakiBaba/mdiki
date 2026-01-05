@@ -60,8 +60,8 @@ server {
   - `index.php`: Public view (file list and viewer).
   - `editor.php`: Main editor (password protected).
   - `mds/`: mdiki files (Markdown and images).
-- `src/`: Backend logic.
-- `config.php`: Configuration.
+- `mdiki-src/`: Backend logic.
+- `mdiki-config.php`: Configuration.
 
 ## Security
 - **Auth**: Session-based authentication with a shared password.

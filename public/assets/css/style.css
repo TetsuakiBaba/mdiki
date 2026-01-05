@@ -1,0 +1,278 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: #333;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toolbar button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background: #444;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.toolbar button:hover {
+    background: #555;
+}
+
+#copy-link {
+    background: #28a745;
+    border-color: #218838;
+}
+
+#copy-link:hover {
+    background: #218838;
+}
+
+main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+#sidebar {
+    width: 250px;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-box {
+    margin-bottom: 10px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#file-tree {
+    flex: 1;
+    overflow-y: auto;
+}
+
+#editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#editor-header {
+    padding: 10px;
+    background: #eee;
+    border-bottom: 1px solid #ccc;
+}
+
+#file-path {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: monospace;
+}
+
+#editor-split {
+    flex: 1;
+    display: flex;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+    color: #333;
+}
+
+.image-modal-content {
+    width: auto;
+    max-width: 90%;
+    padding: 30px 20px 20px 20px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+}
+
+.cheat-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.cheat-sheet-item h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.cheat-sheet-item pre {
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#markdown-editor {
+    flex: 1;
+    padding: 20px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border: none;
+    border-right: 1px solid #ccc;
+    resize: none;
+    outline: none;
+}
+
+#preview-frame {
+    flex: 1;
+    border: none;
+}
+
+.file-item {
+    padding: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px;
+    user-select: none;
+}
+
+.file-item span {
+    flex: 1;
+}
+
+.file-icon {
+    flex: 0 0 auto !important;
+    margin-right: 5px;
+}
+
+.del-btn,
+.rename-btn,
+.copy-item-btn,
+.insert-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 5px;
+    display: none;
+}
+
+.del-btn {
+    color: #dc3545;
+}
+
+.rename-btn {
+    color: #6c757d;
+}
+
+.copy-item-btn {
+    color: #28a745;
+}
+
+.insert-btn {
+    color: #007bff;
+}
+
+.file-item:hover .del-btn,
+.file-item:hover .rename-btn,
+.file-item:hover .copy-item-btn,
+.file-item:hover .insert-btn {
+    display: inline;
+}
+
+.file-item:hover {
+    background: #e9ecef;
+}
+
+.file-item.active {
+    background: #007bff;
+    color: white;
+}
+
+.file-item.active .del-btn,
+.file-item.active .rename-btn,
+.file-item.active .copy-item-btn {
+    color: white;
+}
+
+.file-item.drag-over {
+    background: #cce5ff;
+    outline: 2px dashed #004085;
+}
+
+.dir-item {
+    font-weight: bold;
+}
+
+.root-item {
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+.dir-children {
+    margin-left: 15px;
+    border-left: 1px solid #dee2e6;
+}

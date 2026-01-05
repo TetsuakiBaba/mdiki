@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>mdiki Preview</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/TetsuakiBaba/MarkPaper/markpaper.css">
+    <style>
+        body {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: sans-serif;
+        }
+
+        .preview-pane {
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .preview-content {
+            max-width: 38em;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="preview-pane">
+        <article id="preview" class="preview-content"></article>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/gh/TetsuakiBaba/MarkPaper/markpaper.js" crossorigin="anonymous"
+        type="text/javascript"></script>
+    <script>
+        (function () {
+            const preview = document.getElementById('preview');
+
+            // MarkPaperの動的要素（ハンバーガーメニュー等）を初期化
+            if (window.MarkPaper && MarkPaper.createDynamicElements) {
+                MarkPaper.createDynamicElements();
+                MarkPaper.initHamburgerMenu();
+            }
+
+            function updatePreview(markdown) {
+                if (typeof mdToHTML === 'function') {
+                    // MarkPaperのグローバル関数を使用して変換
+                    const html = mdToHTML(markdown);
+                    preview.innerHTML = html;
+
+                    // 目次を生成
+                    if (window.MarkPaper && MarkPaper.generateTableOfContents) {
+                        MarkPaper.generateTableOfContents();
+                    }
+
+                    // コードブロックのコピーボタン機能を適用
+                    if (window.MarkPaper && MarkPaper.addCopyButtonFunctionality) {
+                        MarkPaper.addCopyButtonFunctionality();
+                    }
+
+                    // 画像クリックでモーダル表示
+                    preview.querySelectorAll('img').forEach(img => {
+                        img.style.cursor = 'zoom-in';
+                        img.onclick = () => {
+                            window.parent.postMessage({
+                                type: 'show_image',
+                                src: img.src,
+                                name: img.alt || img.src.split('/').pop()
+                            }, '*');
+                        };
+                    });
+                }
+            }
+
+            // 親ウィンドウからのメッセージ待機
+            window.addEventListener('message', function (event) {
+                if (typeof event.data === 'string') {
+                    if (event.data === 'preview_ready') return;
+                    updatePreview(event.data);
+                }
+            });
+
+            // 準備完了を通知
+            window.parent.postMessage('preview_ready', '*');
+        })();
+    </script>
+</body>
+
+</html>
