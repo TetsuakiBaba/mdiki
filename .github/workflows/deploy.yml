@@ -18,9 +18,6 @@ jobs:
           mkdir deploy
           cp -r public deploy/mdiki
           cp -r mdiki-src deploy/mdiki-src
-          cp mdiki-config.php deploy/mdiki-config.php
-          # サーバー上のパスに合わせて設定ファイルを調整（public -> mdiki）
-          sed -i "s/'mdiki_root' => __DIR__ . '\/public\/mds'/'mdiki_root' => __DIR__ . '\/mdiki\/mds'/g" deploy/mdiki-config.php
 
       - name: Deploy to Lolipop via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.1

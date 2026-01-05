@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRoot) {
             const rootDiv = document.createElement('div');
             rootDiv.className = 'file-item root-item';
-            rootDiv.innerHTML = '<span>🏠 (Root)</span>';
+            rootDiv.innerHTML = '<span class="material-icons file-icon">home</span><span class="file-name">(Root)</span>';
 
             rootDiv.ondragover = (e) => {
                 e.preventDefault();
@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.appendChild(iconSpan);
 
             const nameSpan = document.createElement('span');
+            nameSpan.className = 'file-name';
             nameSpan.textContent = file.name;
             nameSpan.onclick = async () => {
                 if (!file.is_dir) {
@@ -113,15 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             div.appendChild(nameSpan);
 
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'file-actions';
+
             const renameBtn = document.createElement('button');
             renameBtn.textContent = 'edit';
             renameBtn.className = 'rename-btn material-icons';
             renameBtn.title = 'Rename';
             renameBtn.onclick = (e) => {
                 e.stopPropagation();
-                renameItem(file.path, file.name);
+                renameItem(file.path, file.name, file.is_dir);
             };
-            div.appendChild(renameBtn);
+            actionsDiv.appendChild(renameBtn);
 
             if (!file.is_dir) {
                 if (isImage) {
@@ -138,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
                         updatePreview();
                     };
-                    div.appendChild(insertBtn);
+                    actionsDiv.appendChild(insertBtn);
                 } else {
                     const copyItemBtn = document.createElement('button');
                     copyItemBtn.textContent = 'link';
@@ -148,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.stopPropagation();
                         copyPublicLink(file.path);
                     };
-                    div.appendChild(copyItemBtn);
+                    actionsDiv.appendChild(copyItemBtn);
                 }
             }
 
@@ -160,8 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 deleteFile(file.path);
             };
-            div.appendChild(delBtn);
+            actionsDiv.appendChild(delBtn);
 
+            div.appendChild(actionsDiv);
             item.appendChild(div);
 
             if (file.is_dir && file.children) {
@@ -223,9 +228,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function renameItem(oldPath, oldName) {
-        const newName = prompt('新しい名前を入力してください:', oldName);
+    async function renameItem(oldPath, oldName, isDir) {
+        let newName = prompt('新しい名前を入力してください:', oldName);
         if (!newName || newName === oldName) return;
+
+        if (!isDir) {
+            const dotIndex = oldName.lastIndexOf('.');
+            if (dotIndex !== -1) {
+                const ext = oldName.substring(dotIndex);
+                if (!newName.toLowerCase().endsWith(ext.toLowerCase())) {
+                    newName += ext;
+                }
+            }
+        }
 
         const pathParts = oldPath.split('/');
         pathParts[pathParts.length - 1] = newName;
@@ -252,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteFile(path) {
-        if (!confirm(`Delete ${path}?`)) return;
+        if (!confirm(`${path} を削除してもよろしいですか？`)) return;
         const res = await fetch('api/files.php?action=delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -262,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentPath === path) {
                 currentPath = '';
                 editor.value = '';
+                lastSavedContent = '';
                 filePathInput.value = '';
                 updatePreview();
             }
@@ -281,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveFile() {
         let path = currentPath;
         if (!path) {
-            const name = prompt('Enter file name (e.g. folder/note.md):');
+            const name = prompt('ファイル名を入力してください (例: folder/note.md):');
             if (!name) return false;
             path = name.endsWith('.md') ? name : name + '.md';
         }
@@ -329,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     newFolderBtn.onclick = async () => {
-        const name = prompt('Enter folder name:');
+        const name = prompt('フォルダ名を入力してください:');
         if (!name) return;
         const res = await fetch('api/files.php?action=mkdir', {
             method: 'POST',

@@ -98,17 +98,17 @@ if (!$auth->isAuthenticated()) {
     <div id="app">
         <header>
             <div class="logo">
-                <span class="material-icons" style="color: var(--primary-color);">edit_note</span>
-                <span>mdiki Editor</span>
+                <span class="material-icons">description</span>
+                <span>mdiki</span>
             </div>
             <div class="toolbar">
-                <button id="new-file"><span class="material-icons">note_add</span>New File</button>
-                <button id="new-folder"><span class="material-icons">create_new_folder</span>New Folder</button>
-                <button id="upload-image"><span class="material-icons">image</span>Upload Image</button>
-                <button id="save-file"><span class="material-icons">save</span>Save</button>
-                <button id="copy-link"><span class="material-icons">link</span>Copy Link</button>
-                <button id="show-cheatsheet"><span class="material-icons">help_outline</span>Help</button>
-                <button id="logout"><span class="material-icons">logout</span>Logout</button>
+                <button id="new-file" title="New File"><span class="material-icons">note_add</span></button>
+                <button id="new-folder" title="New Folder"><span class="material-icons">create_new_folder</span></button>
+                <button id="upload-image" title="Upload Image"><span class="material-icons">image</span></button>
+                <button id="save-file" title="Save"><span class="material-icons">save</span></button>
+                <button id="copy-link" title="Copy Link"><span class="material-icons">link</span></button>
+                <button id="show-cheatsheet" title="Help"><span class="material-icons">help_outline</span></button>
+                <button id="logout" title="Logout"><span class="material-icons">logout</span></button>
             </div>
         </header>
         <main>
