@@ -1,6 +1,7 @@
 # mdiki
 A lightweight, file-based wiki system for Markdown documents with a Material Design UI.
 
+![mdiki Screenshot](./screenshot.png)
 ## Features
 - **No Accounts**: Single password access.
 - **Markdown Based**: Files are stored as `.md` files in the filesystem.

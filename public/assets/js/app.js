@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function confirmAndSave() {
         if (!isDirty()) return true;
-        if (confirm('変更が保存されていません。保存して移動しますか？\n「キャンセル」を押すと現在の編集を継続します。')) {
+        if (confirm('You have unsaved changes. Save and continue?')) {
             return await saveFile();
         }
         return false;
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     copyItemBtn.title = 'Copy Public Link';
                     copyItemBtn.onclick = (e) => {
                         e.stopPropagation();
-                        copyPublicLink(file.path);
+                        copyPublicLink(file.path, copyItemBtn);
                     };
                     actionsDiv.appendChild(copyItemBtn);
                 }
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function renameItem(oldPath, oldName, isDir) {
-        let newName = prompt('新しい名前を入力してください:', oldName);
+        let newName = prompt('Enter new name:', oldName);
         if (!newName || newName === oldName) return;
 
         if (!isDir) {
@@ -251,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadFile(path) {
         const res = await fetch(`api/files.php?action=get&path=${encodeURIComponent(path)}`);
+        if (!res.ok) return; // ファイルが存在しない場合は何もしない
         const data = await res.json();
         if (data.content !== undefined) {
             currentPath = path;
@@ -267,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteFile(path) {
-        if (!confirm(`${path} を削除してもよろしいですか？`)) return;
+        if (!confirm(`Are you sure you want to delete ${path}?`)) return;
         const res = await fetch('api/files.php?action=delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -297,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveFile() {
         let path = currentPath;
         if (!path) {
-            const name = prompt('ファイル名を入力してください (例: folder/note.md):');
+            const name = prompt('Enter file name (e.g. folder/note.md):');
             if (!name) return false;
             path = name.endsWith('.md') ? name : name + '.md';
         }
@@ -329,23 +330,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveBtn.onclick = async () => {
         if (await saveFile()) {
-            alert('Saved!');
+            const icon = saveBtn.querySelector('.material-icons');
+            const originalIcon = icon.textContent;
+            icon.textContent = 'done';
+            saveBtn.classList.add('saved-success');
+
+            setTimeout(() => {
+                icon.textContent = originalIcon;
+                saveBtn.classList.remove('saved-success');
+            }, 2000);
         }
     };
 
     newFileBtn.onclick = async () => {
         if (await confirmAndSave()) {
-            currentPath = '';
-            currentHash = '';
-            filePathInput.value = 'New File';
-            editor.value = '';
-            lastSavedContent = '';
-            updatePreview();
+            const name = prompt('Enter file name (e.g. note.md):');
+            if (!name) return;
+            const path = name.toLowerCase().endsWith('.md') ? name : name + '.md';
+
+            const res = await fetch('api/files.php?action=save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    path: path,
+                    content: '',
+                    csrf_token: CSRF_TOKEN
+                })
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                currentPath = path;
+                currentHash = result.hash;
+                filePathInput.value = path;
+                editor.value = '';
+                lastSavedContent = '';
+                updatePreview();
+                loadFileList();
+            } else {
+                const data = await res.json();
+                alert('Failed to create file: ' + (data.error || 'Unknown error'));
+            }
         }
     };
 
     newFolderBtn.onclick = async () => {
-        const name = prompt('フォルダ名を入力してください:');
+        const name = prompt('Enter folder name:');
         if (!name) return;
         const res = await fetch('api/files.php?action=mkdir', {
             method: 'POST',
@@ -392,11 +422,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function copyPublicLink(path) {
+    function showSuccess(btn, originalIcon = 'link') {
+        const icon = btn.classList.contains('material-icons') ? btn : btn.querySelector('.material-icons');
+        const prevIcon = icon.textContent;
+        icon.textContent = 'done';
+        btn.classList.add('copy-success');
+        setTimeout(() => {
+            icon.textContent = prevIcon;
+            btn.classList.remove('copy-success');
+        }, 2000);
+    }
+
+    function copyPublicLink(path, btn = null) {
         const url = new URL('view.html', window.location.href);
         url.searchParams.set('file', path);
         navigator.clipboard.writeText(url.href).then(() => {
-            alert('Public link copied to clipboard!');
+            if (btn) {
+                showSuccess(btn);
+            }
         });
     }
 
@@ -405,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please save the file first.');
             return;
         }
-        copyPublicLink(currentPath);
+        copyPublicLink(currentPath, copyLinkBtn);
     };
 
     logoutBtn.onclick = async () => {
@@ -451,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadFileList();
+    loadFile('index.md');
 
     window.addEventListener('beforeunload', (e) => {
         if (isDirty()) {
