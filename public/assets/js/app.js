@@ -48,7 +48,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRoot) {
             const rootDiv = document.createElement('div');
             rootDiv.className = 'file-item root-item';
-            rootDiv.innerHTML = '<span class="toggle-spacer"></span><span class="material-icons file-icon">home</span><span class="file-name">(Root)</span>';
+            rootDiv.innerHTML = '<span class="material-icons toggle-icon root-toggle" title="Toggle All Folders">expand_more</span><span class="material-icons file-icon">home</span><span class="file-name">(Root)</span>';
+
+            const rootToggle = rootDiv.querySelector('.root-toggle');
+            rootToggle.onclick = (e) => {
+                e.stopPropagation();
+                const allContainers = fileTree.querySelectorAll('.file-item-container');
+                // Check if any folder is currently expanded
+                const isAnyExpanded = Array.from(allContainers).some(c => !c.classList.contains('collapsed'));
+                
+                allContainers.forEach(container => {
+                    if (isAnyExpanded) {
+                        container.classList.add('collapsed');
+                    } else {
+                        container.classList.remove('collapsed');
+                    }
+                });
+                rootToggle.style.transform = isAnyExpanded ? 'rotate(-90deg)' : 'rotate(0deg)';
+            };
 
             rootDiv.ondragover = (e) => {
                 e.preventDefault();
