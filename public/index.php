@@ -51,6 +51,8 @@ $files = $fm->listFiles();
         /* Sidebar Styles */
         #sidebar {
             width: var(--sidebar-width);
+            min-width: 150px;
+            max-width: 600px;
             background: var(--sidebar-bg);
             border-right: 1px solid #dadce0;
             display: flex;
@@ -58,6 +60,29 @@ $files = $fm->listFiles();
             flex-shrink: 0;
             transition: transform 0.3s ease;
             z-index: 100;
+        }
+
+        #sidebar-resizer {
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+            user-select: none;
+            z-index: 10;
+        }
+
+        #sidebar-resizer:hover,
+        #sidebar-resizer.resizing {
+            background: var(--primary-color);
+        }
+
+        body.resizing {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        body.resizing iframe {
+            pointer-events: none;
         }
 
         #sidebar.open {
@@ -141,6 +166,13 @@ $files = $fm->listFiles();
             font-size: 20px;
         }
 
+        .nav-item span:not(.material-icons) {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
         .dir-group {
             margin-bottom: 8px;
         }
@@ -158,6 +190,13 @@ $files = $fm->listFiles();
             cursor: pointer;
             user-select: none;
             transition: background 0.2s;
+        }
+
+        .dir-header span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
         }
 
         .dir-header:hover {
@@ -328,7 +367,7 @@ $files = $fm->listFiles();
                             $isCollapsed = !$isRoot && !isDescendantActive($item['children'], $activePath);
                             $collapsedClass = $isCollapsed ? 'collapsed' : '';
                             echo '<div class="dir-group ' . $collapsedClass . '">';
-                            echo '<div class="dir-header" onclick="this.parentElement.classList.toggle(\'collapsed\')">';
+                            echo '<div class="dir-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" title="' . htmlspecialchars($item['name']) . '">';
                             echo '<span class="material-icons toggle-icon">expand_more</span>';
                             echo '<span>' . htmlspecialchars($item['name']) . '</span>';
                             echo '</div>';
@@ -340,7 +379,7 @@ $files = $fm->listFiles();
                             $ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));
                             if ($ext === 'md') {
                                 $isActive = ($item['path'] === $activePath) ? 'active' : '';
-                                echo '<a href="index.php?file=' . urlencode($item['path']) . '" class="nav-item ' . $isActive . '">';
+                                echo '<a href="index.php?file=' . urlencode($item['path']) . '" class="nav-item ' . $isActive . '" title="' . htmlspecialchars($item['name']) . '">';
                                 echo '<span class="material-icons">article</span>';
                                 echo '<span>' . htmlspecialchars($item['name']) . '</span>';
                                 echo '</a>';
@@ -353,6 +392,7 @@ $files = $fm->listFiles();
                 ?>
             </div>
         </aside>
+        <div id="sidebar-resizer"></div>
 
         <main id="main-content">
             <header>
@@ -377,6 +417,7 @@ $files = $fm->listFiles();
         const menuBtn = document.getElementById('menu-btn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
+        const resizer = document.getElementById('sidebar-resizer');
 
         function toggleSidebar() {
             sidebar.classList.toggle('open');
@@ -385,6 +426,32 @@ $files = $fm->listFiles();
 
         menuBtn.addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
+
+        // Sidebar resizing
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.classList.add('resizing');
+            resizer.classList.add('resizing');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const newWidth = e.clientX;
+            if (newWidth > 150 && newWidth < 600) {
+                sidebar.style.width = `${newWidth}px`;
+                document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.classList.remove('resizing');
+                resizer.classList.remove('resizing');
+            }
+        });
 
         // 画面サイズが変わった時にサイドバーの状態をリセット
         window.addEventListener('resize', () => {
