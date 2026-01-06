@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const allContainers = fileTree.querySelectorAll('.file-item-container');
                 // Check if any folder is currently expanded
                 const isAnyExpanded = Array.from(allContainers).some(c => !c.classList.contains('collapsed'));
-                
+
                 allContainers.forEach(container => {
                     if (isAnyExpanded) {
                         container.classList.add('collapsed');
@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
         files.forEach(file => {
             const item = document.createElement('div');
             item.className = 'file-item-container';
+            if (file.is_dir && !isRoot) {
+                item.classList.add('collapsed');
+            }
 
             const div = document.createElement('div');
             div.className = `file-item ${file.is_dir ? 'dir-item' : ''}`;
