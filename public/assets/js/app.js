@@ -166,6 +166,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     createNewFile(file.path);
                 };
                 actionsDiv.appendChild(addFileBtn);
+
+                const addFolderBtn = document.createElement('button');
+                addFolderBtn.textContent = 'create_new_folder';
+                addFolderBtn.className = 'add-folder-btn material-icons';
+                addFolderBtn.title = 'New Folder in this folder';
+                addFolderBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    createNewFolder(file.path);
+                };
+                actionsDiv.appendChild(addFolderBtn);
             }
 
             const renameBtn = document.createElement('button');
@@ -430,18 +440,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     newFileBtn.onclick = () => createNewFile();
 
-    newFolderBtn.onclick = async () => {
+    async function createNewFolder(parentDir = '') {
         const name = prompt('Enter folder name:');
         if (!name) return;
+        const path = parentDir ? parentDir + '/' + name : name;
         const res = await fetch('api/files.php?action=mkdir', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: name, csrf_token: CSRF_TOKEN })
+            body: JSON.stringify({ path: path, csrf_token: CSRF_TOKEN })
         });
         if (res.ok) {
             loadFileList();
+        } else {
+            const data = await res.json();
+            alert('Failed to create folder: ' + (data.error || 'Unknown error'));
         }
-    };
+    }
+
+    newFolderBtn.onclick = () => createNewFolder();
 
     uploadImageBtn.onclick = () => {
         imageInput.click();

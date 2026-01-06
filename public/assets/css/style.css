@@ -382,6 +382,7 @@ main {
 .del-btn,
 .rename-btn,
 .add-file-btn,
+.add-folder-btn,
 .copy-item-btn,
 .insert-btn {
     background: none;
@@ -399,6 +400,7 @@ main {
 .del-btn:hover,
 .rename-btn:hover,
 .add-file-btn:hover,
+.add-folder-btn:hover,
 .copy-item-btn:hover,
 .insert-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
