@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRoot) {
             const rootDiv = document.createElement('div');
             rootDiv.className = 'file-item root-item';
-            rootDiv.innerHTML = '<span class="material-icons file-icon">home</span><span class="file-name">(Root)</span>';
+            rootDiv.innerHTML = '<span class="toggle-spacer"></span><span class="material-icons file-icon">home</span><span class="file-name">(Root)</span>';
 
             rootDiv.ondragover = (e) => {
                 e.preventDefault();
@@ -80,6 +80,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const isImage = /\.(jpe?g|png|gif|webp)$/i.test(file.name);
             const icon = file.is_dir ? 'folder' : (isImage ? 'image' : 'article');
 
+            if (file.is_dir) {
+                const toggleIcon = document.createElement('span');
+                toggleIcon.className = 'toggle-icon material-icons';
+                toggleIcon.textContent = 'expand_more';
+                toggleIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    item.classList.toggle('collapsed');
+                };
+                div.appendChild(toggleIcon);
+            } else {
+                const spacer = document.createElement('span');
+                spacer.className = 'toggle-spacer';
+                div.appendChild(spacer);
+            }
+
             const iconSpan = document.createElement('span');
             iconSpan.textContent = icon;
             iconSpan.className = 'file-icon material-icons';
@@ -91,6 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     modalImage.src = 'mds/' + file.path;
                     modalImageName.textContent = file.name;
                     imageModal.style.display = 'block';
+                };
+            } else if (file.is_dir) {
+                iconSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    item.classList.toggle('collapsed');
                 };
             }
             div.appendChild(iconSpan);
@@ -110,12 +130,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             loadFile(file.path);
                         }
                     }
+                } else {
+                    item.classList.toggle('collapsed');
                 }
             };
             div.appendChild(nameSpan);
 
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'file-actions';
+
+            if (file.is_dir) {
+                const addFileBtn = document.createElement('button');
+                addFileBtn.textContent = 'note_add';
+                addFileBtn.className = 'add-file-btn material-icons';
+                addFileBtn.title = 'New File in this folder';
+                addFileBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    createNewFile(file.path);
+                };
+                actionsDiv.appendChild(addFileBtn);
+            }
 
             const renameBtn = document.createElement('button');
             renameBtn.textContent = 'edit';
@@ -342,11 +376,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    newFileBtn.onclick = async () => {
+    async function createNewFile(dir = '') {
         if (await confirmAndSave()) {
             const name = prompt('Enter file name (e.g. note.md):');
             if (!name) return;
-            const path = name.toLowerCase().endsWith('.md') ? name : name + '.md';
+            let path = name.toLowerCase().endsWith('.md') ? name : name + '.md';
+            if (dir) {
+                path = dir + '/' + path;
+            }
 
             const res = await fetch('api/files.php?action=save', {
                 method: 'POST',
@@ -372,7 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Failed to create file: ' + (data.error || 'Unknown error'));
             }
         }
-    };
+    }
+
+    newFileBtn.onclick = () => createNewFile();
 
     newFolderBtn.onclick = async () => {
         const name = prompt('Enter folder name:');

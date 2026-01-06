@@ -337,8 +337,34 @@ main {
 }
 
 .dir-children {
-    margin-left: 12px;
+    margin-left: 20px;
     border-left: 1px solid var(--border-color);
+}
+
+.file-item-container.collapsed .dir-children {
+    display: none;
+}
+
+.toggle-icon {
+    font-size: 18px;
+    color: #5f6368;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-spacer {
+    width: 24px;
+    flex-shrink: 0;
+}
+
+.file-item-container.collapsed .toggle-icon {
+    transform: rotate(-90deg);
 }
 
 .file-actions {
@@ -355,6 +381,7 @@ main {
 
 .del-btn,
 .rename-btn,
+.add-file-btn,
 .copy-item-btn,
 .insert-btn {
     background: none;
@@ -371,6 +398,7 @@ main {
 
 .del-btn:hover,
 .rename-btn:hover,
+.add-file-btn:hover,
 .copy-item-btn:hover,
 .insert-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
