@@ -155,6 +155,34 @@ $files = $fm->listFiles();
             color: #70757a;
             text-transform: uppercase;
             letter-spacing: 0.8px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .dir-header:hover {
+            background-color: #f1f3f4;
+            border-radius: 0 20px 20px 0;
+            margin-right: 8px;
+        }
+
+        .toggle-icon {
+            margin-right: 8px;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .dir-group.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .dir-group.collapsed .dir-children {
+            display: none;
+        }
+
+        .dir-children {
+            margin-left: 12px;
+            border-left: 1px solid #dadce0;
         }
 
         /* Main Content Styles */
@@ -283,13 +311,30 @@ $files = $fm->listFiles();
             </div>
             <div class="nav-container">
                 <?php
-                function renderMaterialMenu($items, $activePath = '')
+                function isDescendantActive($items, $activePath)
+                {
+                    foreach ($items as $item) {
+                        if ($item['path'] === $activePath) return true;
+                        if ($item['is_dir'] && isDescendantActive($item['children'], $activePath)) return true;
+                    }
+                    return false;
+                }
+
+                function renderMaterialMenu($items, $activePath = '', $isRoot = true)
                 {
                     foreach ($items as $item) {
                         if ($item['is_dir']) {
-                            echo '<div class="dir-group">';
-                            echo '<div class="dir-header">' . htmlspecialchars($item['name']) . '</div>';
-                            renderMaterialMenu($item['children'], $activePath);
+                            // Root level folders are expanded by default
+                            $isCollapsed = !$isRoot && !isDescendantActive($item['children'], $activePath);
+                            $collapsedClass = $isCollapsed ? 'collapsed' : '';
+                            echo '<div class="dir-group ' . $collapsedClass . '">';
+                            echo '<div class="dir-header" onclick="this.parentElement.classList.toggle(\'collapsed\')">';
+                            echo '<span class="material-icons toggle-icon">expand_more</span>';
+                            echo '<span>' . htmlspecialchars($item['name']) . '</span>';
+                            echo '</div>';
+                            echo '<div class="dir-children">';
+                            renderMaterialMenu($item['children'], $activePath, false);
+                            echo '</div>';
                             echo '</div>';
                         } else {
                             $ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));

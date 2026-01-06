@@ -108,12 +108,36 @@ main {
 
 #sidebar {
     width: var(--sidebar-width);
+    min-width: 150px;
+    max-width: 600px;
     background: var(--sidebar-bg);
-    border-right: 1px solid var(--border-color);
     overflow-y: auto;
     padding: 8px 0;
     display: flex;
     flex-direction: column;
+}
+
+#sidebar-resizer {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.2s;
+    user-select: none;
+    z-index: 10;
+}
+
+#sidebar-resizer:hover,
+#sidebar-resizer.resizing {
+    background: var(--primary-color);
+}
+
+body.resizing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+body.resizing iframe {
+    pointer-events: none;
 }
 
 #file-tree {

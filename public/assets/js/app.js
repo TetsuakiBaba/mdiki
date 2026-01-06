@@ -19,6 +19,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalImage = document.getElementById('modal-image');
     const modalImageName = document.getElementById('modal-image-name');
 
+    const sidebar = document.getElementById('sidebar');
+    const resizer = document.getElementById('sidebar-resizer');
+
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.classList.add('resizing');
+        resizer.classList.add('resizing');
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const newWidth = e.clientX;
+        if (newWidth > 150 && newWidth < 600) {
+            sidebar.style.width = `${newWidth}px`;
+            document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.body.classList.remove('resizing');
+        resizer.classList.remove('resizing');
+    });
+
     let currentPath = '';
     let currentHash = '';
     let isPreviewReady = false;
@@ -138,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nameSpan = document.createElement('span');
             nameSpan.className = 'file-name';
             nameSpan.textContent = file.name;
+            nameSpan.title = file.name;
             nameSpan.onclick = async () => {
                 if (!file.is_dir) {
                     if (isImage) {

@@ -115,6 +115,7 @@ if (!$auth->isAuthenticated()) {
             <aside id="sidebar">
                 <div id="file-tree"></div>
             </aside>
+            <div id="sidebar-resizer"></div>
             <section id="editor-container">
                 <div id="editor-header">
                     <input type="text" id="file-path" readonly>
