@@ -596,7 +596,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadFileList();
-    loadFile('index.md');
+
+    // Check for file parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const fileParam = urlParams.get('file');
+    if (fileParam) {
+        loadFile(fileParam);
+        // Clean up URL without reloading
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+        loadFile('index.md');
+    }
 
     window.addEventListener('beforeunload', (e) => {
         if (isDirty()) {

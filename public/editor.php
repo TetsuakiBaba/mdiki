@@ -97,10 +97,10 @@ if (!$auth->isAuthenticated()) {
 <body>
     <div id="app">
         <header>
-            <div class="logo">
-                <span class="material-icons">description</span>
-                <span>mdiki</span>
-            </div>
+            <a href="index.php" class="logo" style="text-decoration: none; color: inherit;">
+                <span class="material-icons"><?= htmlspecialchars($config['site_icon'] ?? 'description') ?></span>
+                <span><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></span>
+            </a>
             <div class="toolbar">
                 <button id="new-file" title="New File"><span class="material-icons">note_add</span></button>
                 <button id="new-folder" title="New Folder"><span class="material-icons">create_new_folder</span></button>

@@ -342,8 +342,8 @@ $files = $fm->listFiles();
         <aside id="sidebar">
             <div class="sidebar-header">
                 <a href="index.php" class="logo-container">
-                    <span class="material-icons logo-icon">description</span>
-                    <span class="logo-text">mdiki</span>
+                    <span class="material-icons logo-icon"><?= htmlspecialchars($config['site_icon'] ?? 'description') ?></span>
+                    <span class="logo-text"><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></span>
                 </a>
             </div>
             <div class="nav-container">
@@ -399,7 +399,7 @@ $files = $fm->listFiles();
                     <?= htmlspecialchars(basename($currentFile)) ?>
                 </div>
                 <div class="header-actions">
-                    <a href="editor.php" class="nav-item" style="height: 36px; border-radius: 18px; padding: 0 16px; background: #f1f3f4;">
+                    <a href="editor.php?file=<?= urlencode($currentFile) ?>" class="nav-item" style="height: 36px; border-radius: 18px; padding: 0 16px; background: #f1f3f4;">
                         <span class="material-icons" style="font-size: 18px;">edit</span>
                         <span>Edit</span>
                     </a>
