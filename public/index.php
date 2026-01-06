@@ -182,17 +182,15 @@ $files = $fm->listFiles();
             align-items: center;
             padding: 0 24px;
             height: 40px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
-            color: #70757a;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            color: var(--text-color);
             cursor: pointer;
             user-select: none;
             transition: background 0.2s;
         }
 
-        .dir-header span {
+        .dir-header span:not(.material-icons) {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
