@@ -184,60 +184,93 @@ main {
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 800px;
-    max-height: 80vh;
+    background-color: #ffffff;
+    margin: 48px auto;
+    padding: 24px;
+    border: none;
+    box-shadow: 0 11px 15px -7px rgba(0, 0, 0, .2), 0 24px 38px 3px rgba(0, 0, 0, .14), 0 9px 46px 8px rgba(0, 0, 0, .12);
+    width: 90%;
+    max-width: 960px;
+    max-height: 85vh;
     overflow-y: auto;
     border-radius: 8px;
     position: relative;
-    color: #333;
+    color: var(--text-color);
 }
 
 .image-modal-content {
     width: auto;
     max-width: 90%;
     padding: 30px 20px 20px 20px;
+    box-shadow: 0 11px 15px -7px rgba(0, 0, 0, .2), 0 24px 38px 3px rgba(0, 0, 0, .14), 0 9px 46px 8px rgba(0, 0, 0, .12);
 }
 
 .close-button {
-    color: #aaa;
+    color: #5f6368;
     float: right;
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 24px;
+    font-weight: 500;
     cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
 }
 
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
+.close-button:hover {
+    color: #202124;
+    background-color: rgba(0, 0, 0, 0.04);
 }
 
 .cheat-sheet-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.cheat-sheet-item {
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 20px;
+    transition: box-shadow 0.2s;
+}
+
+.cheat-sheet-item:hover {
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
 
 .cheat-sheet-item h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-    font-size: 1.1rem;
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #202124;
+    border-bottom: none;
+    letter-spacing: 0.1px;
+}
+
+.cheat-sheet-item p {
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 20px;
+    margin: 0 0 12px 0;
 }
 
 .cheat-sheet-item pre {
-    background: #f4f4f4;
-    padding: 10px;
+    background: #f8f9fa;
+    padding: 12px;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: 13px;
     white-space: pre-wrap;
     word-wrap: break-word;
+    border: none;
+    color: #37474f;
+    font-family: 'Roboto Mono', monospace;
+    margin: 0;
 }
 
 #markdown-editor {

@@ -107,7 +107,7 @@ if (!$auth->isAuthenticated()) {
                 <button id="upload-image" title="Upload Image"><span class="material-icons">image</span></button>
                 <button id="save-file" title="Save"><span class="material-icons">save</span></button>
                 <button id="copy-link" title="Copy Link"><span class="material-icons">link</span></button>
-                <button id="show-cheatsheet" title="Help"><span class="material-icons">help_outline</span></button>
+                <button id="show-cheatsheet" title="About & Help"><span class="material-icons">info</span></button>
                 <button id="logout" title="Logout"><span class="material-icons">logout</span></button>
             </div>
         </header>
@@ -133,7 +133,8 @@ if (!$auth->isAuthenticated()) {
     <div id="cheatsheet-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>MarkPaper Markdown Cheat Sheet</h2>
+
+            <h2>Markdown Syntax Guide</h2>
             <div class="cheat-sheet-grid">
                 <div class="cheat-sheet-item">
                     <h3>Document Metadata</h3>
@@ -209,6 +210,33 @@ console.log("Hello");
                     <pre>**Bold**  *Italic*  ~~Strikethrough~~
 --- (Horizontal Rule)
 [Link](https://...)</pre>
+                </div>
+            </div>
+
+            <div class="about-section" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #dadce0;">
+                <h2 style="margin-top: 0; margin-bottom: 16px;">About mdiki</h2>
+                <p style="margin-bottom: 16px; line-height: 1.6;">
+                    A simple, lightweight file-based wiki system with a Google Material Design UI.
+                    Built to be fast, secure, and easy to use without any database setup.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px 16px; align-items: start; font-size: 14px;">
+                    <strong style="color: #202124;">Project</strong>
+                    <div>
+                        <a href="https://github.com/TetsuakiBaba/mdiki" target="_blank" style="color: #1a73e8; text-decoration: none;">GitHub Repository</a>
+                    </div>
+
+                    <strong style="color: #202124;">Author</strong>
+                    <div>
+                        Tetsuaki Baba
+                        <span style="color: #dadce0; margin: 0 8px;">|</span>
+                        <a href="https://tetsuakibaba.jp" target="_blank" style="color: #1a73e8; text-decoration: none;">Website</a>
+                    </div>
+
+                    <strong style="color: #202124;">Rendering</strong>
+                    <div>
+                        Powered by <a href="https://github.com/TetsuakiBaba/MarkPaper" target="_blank" style="color: #1a73e8; text-decoration: none;">MarkPaper</a>
+                    </div>
                 </div>
             </div>
         </div>

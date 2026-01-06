@@ -235,14 +235,19 @@ $files = $fm->listFiles();
                 font-size: 16px;
             }
 
-            .header-actions span {
+            .header-actions span:not(.material-icons) {
                 display: none;
             }
 
             .header-actions .nav-item {
-                padding: 0 8px !important;
+                padding: 0 !important;
                 width: 36px;
                 justify-content: center;
+                border-radius: 50% !important;
+            }
+
+            .header-actions .nav-item .material-icons {
+                margin-right: 0;
             }
         }
 
