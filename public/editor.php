@@ -22,55 +22,140 @@ if (!$auth->isAuthenticated()) {
     }
 ?>
     <!DOCTYPE html>
-    <html>
+    <html lang="ja">
 
     <head>
-        <title>Login - mdiki</title>
+        <title>Login - <?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
+            :root {
+                --primary-color: #1a73e8;
+                --text-color: #3c4043;
+                --bg-color: #f8f9fa;
+                --border-color: #dadce0;
+            }
+
             body {
-                font-family: sans-serif;
+                font-family: 'Roboto', sans-serif;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 height: 100vh;
                 margin: 0;
-                background: #f0f2f5;
+                background: var(--bg-color);
+                color: var(--text-color);
             }
 
             .login-box {
                 background: white;
-                padding: 2rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                border-radius: 28px;
+                box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+                width: 100%;
+                max-width: 360px;
+                text-align: center;
             }
 
-            input {
+            .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 24px;
+                color: var(--text-color);
+            }
+
+            .logo .material-icons {
+                color: var(--primary-color);
+                font-size: 32px;
+            }
+
+            .logo h2 {
+                margin: 0;
+                font-size: 24px;
+                font-weight: 400;
+            }
+
+            .error-message {
+                color: #d93025;
+                background: #fce8e6;
+                padding: 8px 12px;
+                border-radius: 8px;
+                margin-bottom: 16px;
+                font-size: 14px;
+            }
+
+            .input-group {
+                margin-bottom: 24px;
+                text-align: left;
+            }
+
+            input[type="password"] {
                 display: block;
                 width: 100%;
-                margin-bottom: 1rem;
-                padding: 0.5rem;
+                padding: 12px 16px;
+                font-size: 16px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
                 box-sizing: border-box;
+                font-family: inherit;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+
+            input[type="password"]:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
             }
 
             button {
                 width: 100%;
-                padding: 0.5rem;
-                background: #007bff;
+                padding: 12px;
+                background: var(--primary-color);
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 100px;
+                font-size: 14px;
+                font-weight: 500;
                 cursor: pointer;
+                transition: background 0.2s, box-shadow 0.2s;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            button:hover {
+                background: #1557b0;
+                box-shadow: 0 1px 3px 1px rgba(60, 64, 67, 0.15), 0 1px 2px rgba(60, 64, 67, 0.3);
+            }
+
+            button:active {
+                background: #174ea6;
             }
         </style>
     </head>
 
     <body>
         <div class="login-box">
-            <h2>mdiki</h2>
-            <?php if (isset($error)): ?><p style="color:red"><?= $error ?></p><?php endif; ?>
+            <div class="logo">
+                <span class="material-icons"><?= htmlspecialchars($config['site_icon'] ?? 'description') ?></span>
+                <h2><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></h2>
+            </div>
+
+            <?php if (isset($error)): ?>
+                <div class="error-message"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
             <form method="POST">
-                <input type="password" name="password" placeholder="Password" required autofocus>
+                <input type="text"
+                    name="username"
+                    autocomplete="username"
+                    value="mdiki"
+                    style="display: none;">
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Password" required autofocus>
+                </div>
                 <button type="submit">Login</button>
             </form>
         </div>
