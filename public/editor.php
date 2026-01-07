@@ -151,7 +151,7 @@ if (!$auth->isAuthenticated()) {
                 <input type="text"
                     name="username"
                     autocomplete="username"
-                    value="mdiki"
+                    value="mdiki.<?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?>"
                     style="display: none;">
                 <div class="input-group">
                     <input type="password" name="password" placeholder="Password" required autofocus>
