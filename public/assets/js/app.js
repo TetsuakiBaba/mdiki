@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentHash = '';
     let isPreviewReady = false;
     let lastSavedContent = '';
+    const expandedFolders = new Set();
+    let isFirstTreeLoad = true;
 
     function isDirty() {
         return editor.value !== lastSavedContent;
@@ -66,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('api/files.php?action=list');
         const files = await res.json();
         renderFileTree(files, fileTree, true);
+        isFirstTreeLoad = false;
     }
 
     function renderFileTree(files, container, isRoot = false) {
@@ -84,10 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isAnyExpanded = Array.from(allContainers).some(c => !c.classList.contains('collapsed'));
 
                 allContainers.forEach(container => {
+                    const folderDiv = container.querySelector('.dir-item');
+                    const path = folderDiv ? folderDiv.dataset.path : null;
+
                     if (isAnyExpanded) {
                         container.classList.add('collapsed');
+                        if (path) expandedFolders.delete(path);
                     } else {
                         container.classList.remove('collapsed');
+                        if (path) expandedFolders.add(path);
                     }
                 });
                 rootToggle.style.transform = isAnyExpanded ? 'rotate(-90deg)' : 'rotate(0deg)';
@@ -113,8 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
         files.forEach(file => {
             const item = document.createElement('div');
             item.className = 'file-item-container';
-            if (file.is_dir && !isRoot) {
-                item.classList.add('collapsed');
+            if (file.is_dir) {
+                if (isFirstTreeLoad && isRoot) {
+                    expandedFolders.add(file.path);
+                }
+
+                if (expandedFolders.has(file.path)) {
+                    item.classList.remove('collapsed');
+                } else {
+                    item.classList.add('collapsed');
+                }
             }
 
             const div = document.createElement('div');
@@ -132,7 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleIcon.textContent = 'expand_more';
                 toggleIcon.onclick = (e) => {
                     e.stopPropagation();
-                    item.classList.toggle('collapsed');
+                    const isCollapsed = item.classList.toggle('collapsed');
+                    if (isCollapsed) {
+                        expandedFolders.delete(file.path);
+                    } else {
+                        expandedFolders.add(file.path);
+                    }
                 };
                 div.appendChild(toggleIcon);
             } else {
@@ -156,7 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (file.is_dir) {
                 iconSpan.onclick = (e) => {
                     e.stopPropagation();
-                    item.classList.toggle('collapsed');
+                    const isCollapsed = item.classList.toggle('collapsed');
+                    if (isCollapsed) {
+                        expandedFolders.delete(file.path);
+                    } else {
+                        expandedFolders.add(file.path);
+                    }
                 };
             }
             div.appendChild(iconSpan);
@@ -178,7 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 } else {
-                    item.classList.toggle('collapsed');
+                    const isCollapsed = item.classList.toggle('collapsed');
+                    if (isCollapsed) {
+                        expandedFolders.delete(file.path);
+                    } else {
+                        expandedFolders.add(file.path);
+                    }
                 }
             };
             div.appendChild(nameSpan);
