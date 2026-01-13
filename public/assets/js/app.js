@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const expandedFolders = new Set();
     let isFirstTreeLoad = true;
 
+    // スクロール同期用の変数
+    let isScrollingEditor = false;
+    let isScrollingPreview = false;
+    let editorScrollTimeout;
+    let previewScrollTimeout;
+
     function isDirty() {
         return editor.value !== lastSavedContent;
     }
@@ -417,6 +423,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editor.addEventListener('input', updatePreview);
 
+    // エディタのスクロールをプレビューに同期
+    editor.addEventListener('scroll', () => {
+        if (isScrollingPreview) return;
+        isScrollingEditor = true;
+        const maxScroll = editor.scrollHeight - editor.clientHeight;
+        const percent = maxScroll > 0 ? editor.scrollTop / maxScroll : 0;
+        if (previewFrame && previewFrame.contentWindow) {
+            previewFrame.contentWindow.postMessage({
+                type: 'scroll',
+                percent: percent
+            }, '*');
+        }
+        clearTimeout(editorScrollTimeout);
+        editorScrollTimeout = setTimeout(() => { isScrollingEditor = false; }, 100);
+    });
+
     async function saveFile() {
         let path = currentPath;
         if (!path) {
@@ -623,6 +645,14 @@ document.addEventListener('DOMContentLoaded', () => {
             modalImage.src = e.data.src;
             modalImageName.textContent = e.data.name;
             imageModal.style.display = 'block';
+        } else if (e.data && e.data.type === 'scroll') {
+            // プレビューからのスクロール同期
+            if (isScrollingEditor) return;
+            isScrollingPreview = true;
+            const maxScroll = editor.scrollHeight - editor.clientHeight;
+            editor.scrollTop = e.data.percent * maxScroll;
+            clearTimeout(previewScrollTimeout);
+            previewScrollTimeout = setTimeout(() => { isScrollingPreview = false; }, 100);
         }
     });
 

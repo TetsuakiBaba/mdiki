@@ -38,6 +38,9 @@
     <script>
         (function () {
             const preview = document.getElementById('preview');
+            const pane = document.querySelector('.preview-pane');
+            let isScrollingFromParent = false;
+            let scrollTimeout;
 
             // MarkPaperの動的要素（ハンバーガーメニュー等）を初期化
             if (window.MarkPaper && MarkPaper.createDynamicElements) {
@@ -80,7 +83,27 @@
                 if (typeof event.data === 'string') {
                     if (event.data === 'preview_ready') return;
                     updatePreview(event.data);
+                } else if (event.data && event.data.type === 'scroll') {
+                    // 親（エディタ）からのスクロール同期
+                    isScrollingFromParent = true;
+                    const maxScroll = pane.scrollHeight - pane.clientHeight;
+                    pane.scrollTop = event.data.percent * maxScroll;
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        isScrollingFromParent = false;
+                    }, 100);
                 }
+            });
+
+            // プレビュー側のスクロールをエディタに同期
+            pane.addEventListener('scroll', () => {
+                if (isScrollingFromParent) return;
+                const maxScroll = pane.scrollHeight - pane.clientHeight;
+                const percent = maxScroll > 0 ? pane.scrollTop / maxScroll : 0;
+                window.parent.postMessage({
+                    type: 'scroll',
+                    percent: percent
+                }, '*');
             });
 
             // 準備完了を通知

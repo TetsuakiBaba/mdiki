@@ -37,3 +37,8 @@ A simple, lightweight file-based wiki system with a Google Material Design UI.
 - Maintain a clean, 2-pane layout for both public and editor views.
 - Images should be previewable in a modal.
 - Support Drag & Drop for file/folder management in the editor.
+
+## Prohibited Behaviors & Content Policy
+
+### Development Restrictions
+- MarkPaper library code, MarkPaper.js and MarkPaper.css must not be modified directly.
