@@ -65,5 +65,8 @@ TeX は Word のような WYSIWYG（What You See What You Get）ではなく、H
 
 ### ローカル環境コンパイル（macOS）
 無料プランの場合は保存できるファイル容量に制限があるため，修士論文や博士論文を完成させることができないことがあります．また，ネットワーク環境のない場所で執筆作業をしたい場合もあると思います．そのような場合は以下の動画の手順に従ってローカル環境でTeXの編集作業，PDF出力ができるようになります．
+
+
+
 * チュートリアル動画（5分）https://www.loom.com/share/f277ba3c2eea4db09a34efe0b651d245?sid=3c95e7e8-426d-4927-88d6-3d53e9053c98
 * mactexパッケージの国内ミラーサーバー： https://www.ctan.org/mirrors/mirmon#jp

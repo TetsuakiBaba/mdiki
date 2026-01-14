@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastSavedContent = '';
     const expandedFolders = new Set();
     let isFirstTreeLoad = true;
+    let isScrollingFromPreview = false;
+    let scrollSyncTimeout;
 
     function isDirty() {
         return editor.value !== lastSavedContent;
@@ -442,6 +444,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editor.addEventListener('input', updatePreview);
 
+    // Scroll Synchronization: Editor -> Preview
+    editor.addEventListener('scroll', () => {
+        if (isScrollingFromPreview) return;
+        const maxScroll = editor.scrollHeight - editor.clientHeight;
+        const percent = maxScroll > 0 ? editor.scrollTop / maxScroll : 0;
+        if (previewFrame && previewFrame.contentWindow) {
+            previewFrame.contentWindow.postMessage({
+                type: 'scroll',
+                percent: percent
+            }, '*');
+        }
+    });
+
     async function saveFile() {
         let path = currentPath;
         if (!path) {
@@ -688,6 +703,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.data === 'preview_ready') {
             isPreviewReady = true;
             updatePreview();
+        } else if (e.data && e.data.type === 'scroll') {
+            // Scroll Synchronization: Preview -> Editor
+            isScrollingFromPreview = true;
+            const maxScroll = editor.scrollHeight - editor.clientHeight;
+            editor.scrollTop = e.data.percent * maxScroll;
+            clearTimeout(scrollSyncTimeout);
+            scrollSyncTimeout = setTimeout(() => {
+                isScrollingFromPreview = false;
+            }, 100);
         } else if (e.data && e.data.type === 'open_file') {
             if (await confirmAndSave()) {
                 loadFile(e.data.path);
