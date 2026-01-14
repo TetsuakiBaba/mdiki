@@ -337,15 +337,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function moveFile(oldPath, newPath) {
-        const formData = new FormData();
-        formData.append('action', 'move');
-        formData.append('oldPath', oldPath);
-        formData.append('newPath', newPath);
-        formData.append('csrf_token', CSRF_TOKEN);
-
         const res = await fetch('api/files.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'move',
+                oldPath: oldPath,
+                newPath: newPath,
+                csrf_token: CSRF_TOKEN
+            })
         });
         if (res.ok) {
             if (currentPath === oldPath) {
@@ -408,14 +410,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function deleteFile(path) {
         if (!confirm(`Are you sure you want to delete ${path}?`)) return;
-        const formData = new FormData();
-        formData.append('action', 'delete');
-        formData.append('path', path);
-        formData.append('csrf_token', CSRF_TOKEN);
-
         const res = await fetch('api/files.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                path: path,
+                csrf_token: CSRF_TOKEN
+            })
         });
         if (res.ok) {
             if (currentPath === path) {
@@ -446,17 +450,21 @@ document.addEventListener('DOMContentLoaded', () => {
             path = name.endsWith('.md') ? name : name + '.md';
         }
 
-        const formData = new FormData();
-        formData.append('action', 'save');
-        formData.append('path', path);
-        formData.append('content', utf8_to_b64(editor.value));
-        formData.append('is_base64', 'true');
-        formData.append('old_hash', currentHash);
-        formData.append('csrf_token', CSRF_TOKEN);
+        const data = {
+            action: 'save',
+            path: path,
+            content: 'base64:' + utf8_to_b64(editor.value),
+            is_base64: true,
+            old_hash: currentHash,
+            csrf_token: CSRF_TOKEN
+        };
 
         const res = await fetch('api/files.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         });
 
         let result;
@@ -547,14 +555,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = prompt('Enter folder name:');
         if (!name) return;
         const path = parentDir ? parentDir + '/' + name : name;
-        const formData = new FormData();
-        formData.append('action', 'mkdir');
-        formData.append('path', path);
-        formData.append('csrf_token', CSRF_TOKEN);
-
         const res = await fetch('api/files.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'mkdir',
+                path: path,
+                csrf_token: CSRF_TOKEN
+            })
         });
         if (res.ok) {
             loadFileList();
