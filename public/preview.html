@@ -80,10 +80,11 @@
 
             // 親ウィンドウからのメッセージ待機
             window.addEventListener('message', function (event) {
-                if (typeof event.data === 'string') {
-                    if (event.data === 'preview_ready') return;
-                    updatePreview(event.data);
-                } else if (event.data && event.data.type === 'scroll') {
+                if (!event.data) return;
+
+                if (event.data.type === 'update') {
+                    updatePreview(event.data.content);
+                } else if (event.data.type === 'scroll') {
                     // 親（エディタ）からのスクロール同期
                     isScrollingFromParent = true;
                     const maxScroll = pane.scrollHeight - pane.clientHeight;

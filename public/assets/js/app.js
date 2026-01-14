@@ -438,7 +438,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePreview() {
         const markdown = editor.value;
         if (previewFrame && previewFrame.contentWindow) {
-            previewFrame.contentWindow.postMessage(markdown, '*');
+            previewFrame.contentWindow.postMessage({
+                type: 'update',
+                content: markdown
+            }, '*');
         }
     }
 

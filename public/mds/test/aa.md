@@ -64,6 +64,8 @@ TeX は Word のような WYSIWYG（What You See What You Get）ではなく、H
 また、Overleafなどのクラウド環境ではファイル容量に制限があり、博士論文などの大きなプロジェクトになると、無料プランでは論文執筆を賄えないケースが頻発します。そのような場合は、MacTexを利用したローカル環境でTeXのコンパイルができるようにしましょう。
 
 ### ローカル環境コンパイル（macOS）
+<div style="position: relative; padding-bottom: 64.98194945848375%; height: 0;"><iframe src="https://www.loom.com/embed/f277ba3c2eea4db09a34efe0b651d245" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
 無料プランの場合は保存できるファイル容量に制限があるため，修士論文や博士論文を完成させることができないことがあります．また，ネットワーク環境のない場所で執筆作業をしたい場合もあると思います．そのような場合は以下の動画の手順に従ってローカル環境でTeXの編集作業，PDF出力ができるようになります．
 
 
