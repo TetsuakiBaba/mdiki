@@ -14,7 +14,7 @@ $auth->requireAuth();
 
 $fm = new FileManager($config['mdiki_root']);
 
-$action = $_GET['action'] ?? '';
+$action = $_REQUEST['action'] ?? '';
 
 try {
     switch ($action) {
@@ -33,13 +33,18 @@ try {
             break;
 
         case 'save':
-            $data = json_decode(file_get_contents('php://input'), true);
+            if (empty($_POST)) {
+                $data = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $data = $_POST;
+            }
+
             if (!Utils::verifyCSRFToken($data['csrf_token'] ?? '')) {
                 Utils::jsonResponse(['error' => 'Invalid CSRF token'], 403);
             }
 
-            $path = $data['path'];
-            $content = $data['content'];
+            $path = $data['path'] ?? '';
+            $content = $data['content'] ?? '';
             if ($data['is_base64'] ?? false) {
                 $content = base64_decode($content);
             }
@@ -58,7 +63,11 @@ try {
             break;
 
         case 'delete':
-            $data = json_decode(file_get_contents('php://input'), true);
+            if (empty($_POST)) {
+                $data = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $data = $_POST;
+            }
             if (!Utils::verifyCSRFToken($data['csrf_token'] ?? '')) {
                 Utils::jsonResponse(['error' => 'Invalid CSRF token'], 403);
             }
@@ -67,7 +76,11 @@ try {
             break;
 
         case 'mkdir':
-            $data = json_decode(file_get_contents('php://input'), true);
+            if (empty($_POST)) {
+                $data = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $data = $_POST;
+            }
             if (!Utils::verifyCSRFToken($data['csrf_token'] ?? '')) {
                 Utils::jsonResponse(['error' => 'Invalid CSRF token'], 403);
             }
@@ -76,7 +89,11 @@ try {
             break;
 
         case 'move':
-            $data = json_decode(file_get_contents('php://input'), true);
+            if (empty($_POST)) {
+                $data = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $data = $_POST;
+            }
             if (!Utils::verifyCSRFToken($data['csrf_token'] ?? '')) {
                 Utils::jsonResponse(['error' => 'Invalid CSRF token'], 403);
             }

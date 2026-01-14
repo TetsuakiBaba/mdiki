@@ -337,10 +337,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function moveFile(oldPath, newPath) {
-        const res = await fetch('api/files.php?action=move', {
+        const formData = new FormData();
+        formData.append('action', 'move');
+        formData.append('oldPath', oldPath);
+        formData.append('newPath', newPath);
+        formData.append('csrf_token', CSRF_TOKEN);
+
+        const res = await fetch('api/files.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ oldPath, newPath, csrf_token: CSRF_TOKEN })
+            body: formData
         });
         if (res.ok) {
             if (currentPath === oldPath) {
@@ -349,8 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             loadFileList();
         } else {
-            const data = await res.json();
-            alert('Move failed: ' + (data.error || 'Unknown error'));
+            let errorMsg = 'Unknown error';
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await res.json();
+                errorMsg = data.error || errorMsg;
+            } else {
+                const text = await res.text();
+                errorMsg = `Server returned ${res.status}. ${text.substring(0, 100)}...`;
+            }
+            alert('Move failed: ' + errorMsg);
         }
     }
 
@@ -395,10 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function deleteFile(path) {
         if (!confirm(`Are you sure you want to delete ${path}?`)) return;
-        const res = await fetch('api/files.php?action=delete', {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('path', path);
+        formData.append('csrf_token', CSRF_TOKEN);
+
+        const res = await fetch('api/files.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path, csrf_token: CSRF_TOKEN })
+            body: formData
         });
         if (res.ok) {
             if (currentPath === path) {
@@ -429,16 +446,17 @@ document.addEventListener('DOMContentLoaded', () => {
             path = name.endsWith('.md') ? name : name + '.md';
         }
 
-        const res = await fetch('api/files.php?action=save', {
+        const formData = new FormData();
+        formData.append('action', 'save');
+        formData.append('path', path);
+        formData.append('content', utf8_to_b64(editor.value));
+        formData.append('is_base64', 'true');
+        formData.append('old_hash', currentHash);
+        formData.append('csrf_token', CSRF_TOKEN);
+
+        const res = await fetch('api/files.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                path: path,
-                content: utf8_to_b64(editor.value),
-                is_base64: true,
-                old_hash: currentHash,
-                csrf_token: CSRF_TOKEN
-            })
+            body: formData
         });
 
         let result;
@@ -487,15 +505,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 path = dir + '/' + path;
             }
 
-            const res = await fetch('api/files.php?action=save', {
+            const formData = new FormData();
+            formData.append('action', 'save');
+            formData.append('path', path);
+            formData.append('content', '');
+            formData.append('is_base64', 'true');
+            formData.append('csrf_token', CSRF_TOKEN);
+
+            const res = await fetch('api/files.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    path: path,
-                    content: '',
-                    is_base64: true,
-                    csrf_token: CSRF_TOKEN
-                })
+                body: formData
             });
 
             if (res.ok) {
@@ -528,16 +547,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = prompt('Enter folder name:');
         if (!name) return;
         const path = parentDir ? parentDir + '/' + name : name;
-        const res = await fetch('api/files.php?action=mkdir', {
+        const formData = new FormData();
+        formData.append('action', 'mkdir');
+        formData.append('path', path);
+        formData.append('csrf_token', CSRF_TOKEN);
+
+        const res = await fetch('api/files.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: path, csrf_token: CSRF_TOKEN })
+            body: formData
         });
         if (res.ok) {
             loadFileList();
         } else {
-            const data = await res.json();
-            alert('Failed to create folder: ' + (data.error || 'Unknown error'));
+            let errorMsg = 'Unknown error';
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await res.json();
+                errorMsg = data.error || errorMsg;
+            } else {
+                const text = await res.text();
+                errorMsg = `Server returned ${res.status}. ${text.substring(0, 100)}...`;
+            }
+            alert('Failed to create folder: ' + errorMsg);
         }
     }
 
@@ -551,13 +582,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (imageInput.files.length === 0) return;
         const file = imageInput.files[0];
         const formData = new FormData();
+        formData.append('action', 'upload');
         formData.append('image', file);
         formData.append('csrf_token', CSRF_TOKEN);
         // Upload to current directory if possible, otherwise root
         const currentDir = currentPath ? currentPath.split('/').slice(0, -1).join('/') : '';
         formData.append('dir', currentDir);
 
-        const res = await fetch('api/files.php?action=upload', {
+        const res = await fetch('api/files.php', {
             method: 'POST',
             body: formData
         });
