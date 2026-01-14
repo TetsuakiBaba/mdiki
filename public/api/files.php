@@ -40,6 +40,9 @@ try {
 
             $path = $data['path'];
             $content = $data['content'];
+            if ($data['is_base64'] ?? false) {
+                $content = base64_decode($content);
+            }
             $oldHash = $data['old_hash'] ?? '';
 
             if (file_exists($fm->getFullPath($path))) {

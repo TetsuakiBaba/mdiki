@@ -52,14 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const expandedFolders = new Set();
     let isFirstTreeLoad = true;
 
-    // スクロール同期用の変数
-    let isScrollingEditor = false;
-    let isScrollingPreview = false;
-    let editorScrollTimeout;
-    let previewScrollTimeout;
-
     function isDirty() {
         return editor.value !== lastSavedContent;
+    }
+
+    function utf8_to_b64(str) {
+        return btoa(new TextEncoder().encode(str).reduce((data, byte) => data + String.fromCharCode(byte), ''));
     }
 
     async function confirmAndSave() {
@@ -423,22 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editor.addEventListener('input', updatePreview);
 
-    // エディタのスクロールをプレビューに同期
-    editor.addEventListener('scroll', () => {
-        if (isScrollingPreview) return;
-        isScrollingEditor = true;
-        const maxScroll = editor.scrollHeight - editor.clientHeight;
-        const percent = maxScroll > 0 ? editor.scrollTop / maxScroll : 0;
-        if (previewFrame && previewFrame.contentWindow) {
-            previewFrame.contentWindow.postMessage({
-                type: 'scroll',
-                percent: percent
-            }, '*');
-        }
-        clearTimeout(editorScrollTimeout);
-        editorScrollTimeout = setTimeout(() => { isScrollingEditor = false; }, 100);
-    });
-
     async function saveFile() {
         let path = currentPath;
         if (!path) {
@@ -452,13 +434,23 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 path: path,
-                content: editor.value,
+                content: utf8_to_b64(editor.value),
+                is_base64: true,
                 old_hash: currentHash,
                 csrf_token: CSRF_TOKEN
             })
         });
 
-        const result = await res.json();
+        let result;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            result = await res.json();
+        } else {
+            const text = await res.text();
+            alert(`Save failed: Server returned ${res.status}. ${text.substring(0, 100)}...`);
+            return false;
+        }
+
         if (res.ok) {
             currentPath = path;
             currentHash = result.hash;
@@ -501,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     path: path,
                     content: '',
+                    is_base64: true,
                     csrf_token: CSRF_TOKEN
                 })
             });
@@ -515,8 +508,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePreview();
                 loadFileList();
             } else {
-                const data = await res.json();
-                alert('Failed to create file: ' + (data.error || 'Unknown error'));
+                let errorMsg = 'Unknown error';
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    errorMsg = data.error || errorMsg;
+                } else {
+                    const text = await res.text();
+                    errorMsg = `Server returned ${res.status}. ${text.substring(0, 100)}...`;
+                }
+                alert('Failed to create file: ' + errorMsg);
             }
         }
     }
@@ -572,8 +573,16 @@ document.addEventListener('DOMContentLoaded', () => {
             loadFileList();
             imageInput.value = ''; // Reset input
         } else {
-            const data = await res.json();
-            alert('Upload failed: ' + (data.error || 'Unknown error'));
+            let errorMsg = 'Unknown error';
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await res.json();
+                errorMsg = data.error || errorMsg;
+            } else {
+                const text = await res.text();
+                errorMsg = `Server returned ${res.status}. ${text.substring(0, 100)}...`;
+            }
+            alert('Upload failed: ' + errorMsg);
         }
     };
 
@@ -645,14 +654,6 @@ document.addEventListener('DOMContentLoaded', () => {
             modalImage.src = e.data.src;
             modalImageName.textContent = e.data.name;
             imageModal.style.display = 'block';
-        } else if (e.data && e.data.type === 'scroll') {
-            // プレビューからのスクロール同期
-            if (isScrollingEditor) return;
-            isScrollingPreview = true;
-            const maxScroll = editor.scrollHeight - editor.clientHeight;
-            editor.scrollTop = e.data.percent * maxScroll;
-            clearTimeout(previewScrollTimeout);
-            previewScrollTimeout = setTimeout(() => { isScrollingPreview = false; }, 100);
         }
     });
 
