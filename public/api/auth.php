@@ -17,4 +17,21 @@ if ($action === 'logout') {
     exit;
 }
 
+if ($action === 'check') {
+    if ($auth->isAuthenticated()) {
+        Utils::jsonResponse(['authenticated' => true]);
+    } else {
+        Utils::jsonResponse(['authenticated' => false], 401);
+    }
+}
+
+if ($action === 'extend') {
+    if ($auth->isAuthenticated()) {
+        // Session is already extended by the class constructor (session_start)
+        Utils::jsonResponse(['success' => true]);
+    } else {
+        Utils::jsonResponse(['success' => false], 401);
+    }
+}
+
 Utils::jsonResponse(['error' => 'Invalid action'], 400);

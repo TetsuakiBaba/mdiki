@@ -15,7 +15,17 @@ class Auth
                 'cookie_httponly' => true,
                 'cookie_samesite' => 'Lax',
                 'gc_maxlifetime' => $this->config['session_lifetime'],
+                'cookie_lifetime' => $this->config['session_lifetime'],
             ]);
+        }
+
+        // タイムアウトのチェック
+        if ($this->isAuthenticated()) {
+            if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $this->config['session_lifetime'])) {
+                $this->logout();
+            } else {
+                $_SESSION['last_activity'] = time();
+            }
         }
     }
 
@@ -23,6 +33,7 @@ class Auth
     {
         if ($password === $this->config['password']) {
             $_SESSION['authenticated'] = true;
+            $_SESSION['last_activity'] = time();
             return true;
         }
         return false;

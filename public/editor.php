@@ -14,7 +14,8 @@ if (!$auth->isAuthenticated()) {
     // Simple login page
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
         if ($auth->login($_POST['password'])) {
-            header('Location: editor.php');
+            $redirect = $_SERVER['REQUEST_URI'];
+            header('Location: ' . $redirect);
             exit;
         } else {
             $error = "Invalid password";

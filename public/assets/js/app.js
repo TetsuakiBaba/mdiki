@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Session Management Interceptor
+    let isSessionAlertShowing = false;
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        if (response.status === 401 && !isSessionAlertShowing) {
+            isSessionAlertShowing = true;
+            alert('セッションの有効期限が切れました。ログイン画面に戻ります。');
+            window.location.href = 'editor.php';
+        }
+        return response;
+    };
+
     const editor = document.getElementById('markdown-editor');
     const previewFrame = document.getElementById('preview-frame');
     const fileTree = document.getElementById('file-tree');
@@ -141,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const div = document.createElement('div');
             div.className = `file-item ${file.is_dir ? 'dir-item' : ''}`;
+            if (file.path === currentPath) div.classList.add('active');
             div.draggable = true;
             div.dataset.path = file.path;
             div.dataset.isDir = file.is_dir;
@@ -393,11 +407,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadFile(path) {
+        currentPath = path;
+        // Auto-expand parent folders
+        const parts = path.split('/');
+        let currentLevel = '';
+        for (let i = 0; i < parts.length - 1; i++) {
+            currentLevel += (currentLevel ? '/' : '') + parts[i];
+            expandedFolders.add(currentLevel);
+        }
+
         const res = await fetch(`api/files.php?action=get&path=${encodeURIComponent(path)}`);
         if (!res.ok) return; // ファイルが存在しない場合は何もしない
         const data = await res.json();
         if (data.content !== undefined) {
-            currentPath = path;
             currentHash = data.hash;
             filePathInput.value = path;
             editor.value = data.content;
@@ -753,7 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    editor.addEventListener('keydown', (e) => {
+    window.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
             const start = editor.selectionStart;
@@ -763,4 +785,19 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePreview();
         }
     });
+
+    // Session Management
+    function setupSessionCheck() {
+        const checkInterval = 10 * 1000; // 10秒ごとにチェック
+        setInterval(async () => {
+            try {
+                // インターセプターが401を監視しているため、fetchするだけでOK
+                await fetch('api/auth.php?action=check');
+            } catch (e) {
+                console.error('Session check failed', e);
+            }
+        }, checkInterval);
+    }
+
+    setupSessionCheck();
 });
