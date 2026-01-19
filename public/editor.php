@@ -200,6 +200,11 @@ if (!$auth->isAuthenticated()) {
         <main>
             <aside id="sidebar">
                 <div id="file-tree"></div>
+                <?php if (!empty($config['default_license'])): ?>
+                    <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
+                        <?= htmlspecialchars($config['default_license']) ?>
+                    </div>
+                <?php endif; ?>
             </aside>
             <div id="sidebar-resizer"></div>
             <section id="editor-container">
