@@ -50,6 +50,14 @@ try {
                 }
                 $content = base64_decode($content);
             }
+
+            // Auto-update date metadata if present in .md files
+            if (pathinfo($path, PATHINFO_EXTENSION) === 'md') {
+                $today = date('Y-m-d');
+                // Matches 'date: ...' at the start of a line
+                $content = preg_replace('/^date:\s*.*$/mi', 'date: ' . $today, $content);
+            }
+
             $oldHash = $data['old_hash'] ?? '';
 
             if (file_exists($fm->getFullPath($path))) {
@@ -61,7 +69,11 @@ try {
             }
 
             $fm->saveFile($path, $content);
-            Utils::jsonResponse(['success' => true, 'hash' => md5($content)]);
+            Utils::jsonResponse([
+                'success' => true,
+                'hash' => md5($content),
+                'content' => $content
+            ]);
             break;
 
         case 'delete':

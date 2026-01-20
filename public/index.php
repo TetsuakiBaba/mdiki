@@ -391,7 +391,8 @@ $files = $fm->listFiles();
             </div>
             <?php if (!empty($config['default_license'])): ?>
                 <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
-                    <?= htmlspecialchars($config['default_license']) ?>
+                    <div><?= htmlspecialchars($config['default_license']) ?></div>
+                    <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
                 </div>
             <?php endif; ?>
         </aside>

@@ -520,6 +520,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.ok) {
             currentPath = path;
             currentHash = result.hash;
+            if (result.content !== undefined) {
+                editor.value = result.content;
+                updatePreview();
+            }
             lastSavedContent = editor.value;
             filePathInput.value = path;
             loadFileList();

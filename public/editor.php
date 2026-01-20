@@ -202,7 +202,8 @@ if (!$auth->isAuthenticated()) {
                 <div id="file-tree"></div>
                 <?php if (!empty($config['default_license'])): ?>
                     <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
-                        <?= htmlspecialchars($config['default_license']) ?>
+                        <div><?= htmlspecialchars($config['default_license']) ?></div>
+                        <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
                     </div>
                 <?php endif; ?>
             </aside>
@@ -313,6 +314,9 @@ console.log("Hello");
                 </p>
 
                 <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px 16px; align-items: start; font-size: 14px;">
+                    <strong style="color: #202124;">Version</strong>
+                    <div>v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
+
                     <strong style="color: #202124;">Project</strong>
                     <div>
                         <a href="https://github.com/TetsuakiBaba/mdiki" target="_blank" style="color: #1a73e8; text-decoration: none;">GitHub Repository</a>
