@@ -184,10 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 div.appendChild(toggleIcon);
-            } else {
-                const spacer = document.createElement('span');
-                spacer.className = 'toggle-spacer';
-                div.appendChild(spacer);
             }
 
             const iconSpan = document.createElement('span');

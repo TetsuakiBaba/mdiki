@@ -393,11 +393,6 @@ body.resizing iframe {
     justify-content: center;
 }
 
-.toggle-spacer {
-    width: 24px;
-    flex-shrink: 0;
-}
-
 .file-item-container.collapsed .toggle-icon {
     transform: rotate(-90deg);
 }
