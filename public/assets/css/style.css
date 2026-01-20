@@ -96,6 +96,17 @@ header {
     transform: scale(1.2);
 }
 
+#toggle-hidden.active {
+    color: var(--primary-color);
+    background-color: var(--active-bg);
+}
+
+#markdown-editor.drag-over {
+    background-color: #f0f7ff;
+    outline: 2px dashed var(--primary-color);
+    outline-offset: -10px;
+}
+
 #logout {
     margin-left: 8px;
 }

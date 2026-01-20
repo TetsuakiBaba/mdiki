@@ -19,8 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-file');
     const newFileBtn = document.getElementById('new-file');
     const newFolderBtn = document.getElementById('new-folder');
-    const uploadImageBtn = document.getElementById('upload-image');
-    const imageInput = document.getElementById('image-input');
+    const toggleHiddenBtn = document.getElementById('toggle-hidden');
     const copyLinkBtn = document.getElementById('copy-link');
     const logoutBtn = document.getElementById('logout');
     const cheatsheetBtn = document.getElementById('show-cheatsheet');
@@ -66,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isFirstTreeLoad = true;
     let isScrollingFromPreview = false;
     let scrollSyncTimeout;
+    let showHiddenFiles = localStorage.getItem('mdiki_show_hidden') === 'true';
 
     function isDirty() {
         return editor.value !== lastSavedContent;
@@ -138,6 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         files.forEach(file => {
+            if (!showHiddenFiles && file.name.startsWith('.') && file.name !== '.data') {
+                return;
+            }
+            // Explicitly hide .data if showHiddenFiles is false
+            if (!showHiddenFiles && file.name === '.data') {
+                return;
+            }
+
             const item = document.createElement('div');
             item.className = 'file-item-container';
             if (file.is_dir) {
@@ -469,6 +477,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editor.addEventListener('input', updatePreview);
 
+    // Drag and Drop for Editor
+    editor.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.classList.add('drag-over');
+    });
+
+    editor.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.classList.remove('drag-over');
+    });
+
+    editor.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.classList.remove('drag-over');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    await handleImageUpload(file, true);
+                }
+            }
+        }
+    });
+
     // Scroll Synchronization: Editor -> Preview
     editor.addEventListener('scroll', () => {
         if (isScrollingFromPreview) return;
@@ -533,6 +569,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
     }
+
+    // Hidden files toggle
+    function updateHiddenFilesUI() {
+        const icon = toggleHiddenBtn.querySelector('.material-icons');
+        if (showHiddenFiles) {
+            toggleHiddenBtn.classList.add('active');
+            icon.textContent = 'visibility';
+        } else {
+            toggleHiddenBtn.classList.remove('active');
+            icon.textContent = 'visibility_off';
+        }
+    }
+    updateHiddenFilesUI();
+
+    toggleHiddenBtn.onclick = () => {
+        showHiddenFiles = !showHiddenFiles;
+        localStorage.setItem('mdiki_show_hidden', showHiddenFiles);
+        updateHiddenFilesUI();
+        loadFileList();
+    };
 
     saveBtn.onclick = async () => {
         if (await saveFile()) {
@@ -628,20 +684,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     newFolderBtn.onclick = () => createNewFolder();
 
-    uploadImageBtn.onclick = () => {
-        imageInput.click();
-    };
-
-    imageInput.onchange = async () => {
-        if (imageInput.files.length === 0) return;
-        const file = imageInput.files[0];
+    async function handleImageUpload(file, useDotData = false) {
         const formData = new FormData();
         formData.append('action', 'upload');
         formData.append('image', file);
         formData.append('csrf_token', CSRF_TOKEN);
-        // Upload to current directory if possible, otherwise root
+
         const currentDir = currentPath ? currentPath.split('/').slice(0, -1).join('/') : '';
-        formData.append('dir', currentDir);
+        let targetDir = currentDir;
+        if (useDotData) {
+            targetDir = currentDir ? currentDir + '/.data' : '.data';
+        }
+        formData.append('dir', targetDir);
 
         const res = await fetch('api/files.php', {
             method: 'POST',
@@ -650,14 +704,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok) {
             const data = await res.json();
+            // Use absolute-ish path from the web root (mds/...) for reliability in view/preview
             const imageMarkdown = `![${file.name}](mds/${data.path})`;
+
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
             editor.value = editor.value.substring(0, start) + imageMarkdown + editor.value.substring(end);
             editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
             updatePreview();
             loadFileList();
-            imageInput.value = ''; // Reset input
         } else {
             let errorMsg = 'Unknown error';
             const contentType = res.headers.get("content-type");
@@ -670,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             alert('Upload failed: ' + errorMsg);
         }
-    };
+    }
 
     function showSuccess(btn, originalIcon = 'link') {
         const icon = btn.classList.contains('material-icons') ? btn : btn.querySelector('.material-icons');

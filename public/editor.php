@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../mdiki-src/Utils.php';
+require_once __DIR__ . '/../mdiki-src/version.php';
 require_once __DIR__ . '/../mdiki-src/Auth.php';
 require_once __DIR__ . '/../mdiki-src/FileManager.php';
 
@@ -7,6 +8,7 @@ $config = require __DIR__ . '/../mdiki-config.php';
 
 use Mdiki\Auth;
 use Mdiki\Utils;
+use Mdiki\AppInfo;
 
 $auth = new Auth($config);
 
@@ -190,7 +192,7 @@ if (!$auth->isAuthenticated()) {
             <div class="toolbar">
                 <button id="new-file" title="New File"><span class="material-icons">note_add</span></button>
                 <button id="new-folder" title="New Folder"><span class="material-icons">create_new_folder</span></button>
-                <button id="upload-image" title="Upload Image"><span class="material-icons">image</span></button>
+                <button id="toggle-hidden" title="Toggle Hidden Files"><span class="material-icons">visibility_off</span></button>
                 <button id="save-file" title="Save"><span class="material-icons">save</span></button>
                 <button id="copy-link" title="Copy Link"><span class="material-icons">link</span></button>
                 <button id="show-cheatsheet" title="About & Help"><span class="material-icons">info</span></button>
@@ -203,7 +205,7 @@ if (!$auth->isAuthenticated()) {
                 <?php if (!empty($config['default_license'])): ?>
                     <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
                         <div><?= htmlspecialchars($config['default_license']) ?></div>
-                        <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
+                        <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
                     </div>
                 <?php endif; ?>
             </aside>
@@ -220,7 +222,7 @@ if (!$auth->isAuthenticated()) {
         </main>
     </div>
 
-    <input type="file" id="image-input" style="display: none;" accept="image/*">
+    </div>
 
     <!-- Cheat Sheet Modal -->
     <div id="cheatsheet-modal" class="modal">
@@ -315,7 +317,7 @@ console.log("Hello");
 
                 <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px 16px; align-items: start; font-size: 14px;">
                     <strong style="color: #202124;">Version</strong>
-                    <div>v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
+                    <div>v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
 
                     <strong style="color: #202124;">Project</strong>
                     <div>

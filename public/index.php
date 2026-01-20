@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../mdiki-src/Utils.php';
+require_once __DIR__ . '/../mdiki-src/version.php';
 require_once __DIR__ . '/../mdiki-src/FileManager.php';
 
 $config = require __DIR__ . '/../mdiki-config.php';
 
 use Mdiki\FileManager;
+use Mdiki\AppInfo;
 
 $fm = new FileManager($config['mdiki_root']);
 $files = $fm->listFiles();
@@ -392,7 +394,7 @@ $files = $fm->listFiles();
             <?php if (!empty($config['default_license'])): ?>
                 <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
                     <div><?= htmlspecialchars($config['default_license']) ?></div>
-                    <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars($config['version'] ?? '1.0.0') ?></div>
+                    <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
                 </div>
             <?php endif; ?>
         </aside>

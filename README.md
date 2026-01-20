@@ -9,6 +9,13 @@ A lightweight, file-based wiki system for Markdown documents with a Material Des
 - **MarkPaper Rendering**: Beautiful academic-style rendering.
 - **Secure**: Path traversal protection, CSRF tokens, and optimistic locking.
 
+## Key Usage
+### Image Management
+- **Drag & Drop**: Simply drag image files (**.jpg, .jpeg, .png, .gif, .webp**) from your computer and drop them directly onto the editor area.
+- **Auto-Storage**: Images are automatically saved in a `.data/` sub-directory relative to the file you are editing.
+- **Auto-Link**: A Markdown image link is automatically inserted at the cursor position.
+- **Hidden Files**: Use the visibility icon (👁️) in the editor toolbar to show or hide the `.data/` folders in the sidebar.
+
 ## Setup
 1. Place the files on a PHP-enabled server.
 2. Ensure `public/mds/` directory is writable by the web server.
