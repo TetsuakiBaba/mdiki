@@ -12,7 +12,7 @@ use Mdiki\FileManager;
 $auth = new Auth($config);
 $auth->requireAuth();
 
-$fm = new FileManager($config['mdiki_root']);
+$fm = new FileManager($config['mdiki_root'], $config['max_upload_size'] ?? 10);
 
 $rawData = file_get_contents('php://input');
 $jsonData = json_decode($rawData, true) ?? [];

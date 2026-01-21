@@ -681,6 +681,11 @@ document.addEventListener('DOMContentLoaded', () => {
     newFolderBtn.onclick = () => createNewFolder();
 
     async function handleImageUpload(file, useDotData = false) {
+        if (file.size > MAX_UPLOAD_SIZE * 1024 * 1024) {
+            alert(`File is too large. Maximum size allowed is ${MAX_UPLOAD_SIZE}MB.`);
+            return;
+        }
+
         const formData = new FormData();
         formData.append('action', 'upload');
         formData.append('image', file);

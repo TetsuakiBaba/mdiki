@@ -353,6 +353,7 @@ console.log("Hello");
 
     <script>
         const CSRF_TOKEN = '<?= Utils::generateCSRFToken() ?>';
+        const MAX_UPLOAD_SIZE = <?= (int)($config['max_upload_size'] ?? 10) ?>;
     </script>
     <script src="assets/js/app.js"></script>
 </body>

@@ -5,10 +5,12 @@ namespace Mdiki;
 class FileManager
 {
     private $mdikiRoot;
+    private $maxUploadSize; // in bytes
 
-    public function __construct($mdikiRoot)
+    public function __construct($mdikiRoot, $maxUploadSizeMB = 10)
     {
         $this->mdikiRoot = realpath($mdikiRoot);
+        $this->maxUploadSize = $maxUploadSizeMB * 1024 * 1024;
     }
 
     public function getFullPath($relativePath)
@@ -121,6 +123,12 @@ class FileManager
 
         $fileName = basename($file['name']);
         $targetPath = $fullTargetDir . '/' . $fileName;
+
+        // Check file size
+        if ($file['size'] > $this->maxUploadSize) {
+            $limitMB = $this->maxUploadSize / (1024 * 1024);
+            throw new \Exception("File is too large. Maximum size allowed is {$limitMB}MB.");
+        }
 
         // Validate file type
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
