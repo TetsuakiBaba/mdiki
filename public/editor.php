@@ -224,6 +224,20 @@ if (!$auth->isAuthenticated()) {
 
     </div>
 
+    <!-- Unsaved Changes Modal -->
+    <div id="unsaved-modal" class="modal">
+        <div class="modal-content small-modal">
+            <span class="close-button">&times;</span>
+            <h2 style="margin-top: 0; margin-bottom: 8px;">Unsaved Changes</h2>
+            <p style="margin: 0 0 16px; color: #5f6368;">You have unsaved changes. Choose whether to save, discard, or cancel.</p>
+            <div class="modal-actions">
+                <button id="unsaved-cancel" class="modal-button">Cancel</button>
+                <button id="unsaved-discard" class="modal-button">Discard and Continue</button>
+                <button id="unsaved-save" class="modal-button primary">Save and Continue</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cheat Sheet Modal -->
     <div id="cheatsheet-modal" class="modal">
         <div class="modal-content">
@@ -239,7 +253,9 @@ author: Author Name
 date: 2024-01-15
 institution: Organization
 email: email@example.com
-footer: © 2024 My Wiki</pre>
+editor: Editor Name
+footer: &copy; 2024 My Wiki
+lisence: CC BY 4.0</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Headings</h3>
@@ -247,7 +263,13 @@ footer: © 2024 My Wiki</pre>
                     <pre># h1 Title
 ## h2 Heading (Numbered, TOC)
 ### h3 Heading (Numbered)
-#### h4 Heading</pre>
+#### h4 Heading
+##### h5 Heading</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Paragraph Titles</h3>
+                    <p>LaTeX-style inline bold titles for organizing content.</p>
+                    <pre>::Title:: This is a paragraph with a title.</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Alerts (GitHub-style)</h3>
@@ -267,29 +289,36 @@ footer: © 2024 My Wiki</pre>
 > Caution message.</pre>
                 </div>
                 <div class="cheat-sheet-item">
-                    <h3>Footnotes</h3>
-                    <pre>Add a footnote[^1] in the text.
-
-[^1]: Footnote content. Displayed at the end of the section.</pre>
-                </div>
-                <div class="cheat-sheet-item">
                     <h3>Images</h3>
-                    <p>Captions and width specification are supported.</p>
+                    <p>Captions and width specification are supported. Figures are auto-numbered.</p>
                     <pre>![Caption](image.jpg)
 ![](image.jpg){width="50%"}</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Lists</h3>
-                    <pre>- Unordered list
-  - Nested item
-1. Ordered list
-   1. Nested item</pre>
+                    <pre>* Unordered list
+  * Nested item
+- Ordered list
+  - Nested item</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Tables</h3>
                     <pre>| Header | Title |
 |--------|-------|
 | Cell   | Cell  |</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Footnotes</h3>
+                    <p>Automatically placed at the end of the current heading section.</p>
+                    <pre>Add a footnote[^1] in the text.
+
+[^1]: Footnote content.</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Embedded Content</h3>
+                    <p>Safe HTML tags and embedding for YouTube, Google Maps, etc.</p>
+                    <pre>&lt;iframe src="..."&gt;&lt;/iframe&gt;
+&lt;span style="color:red"&gt;Red text&lt;/span&gt;</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Code</h3>

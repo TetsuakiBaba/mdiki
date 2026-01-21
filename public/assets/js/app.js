@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const cheatsheetModal = document.getElementById('cheatsheet-modal');
     const closeBtn = cheatsheetModal.querySelector('.close-button');
 
+    const unsavedModal = document.getElementById('unsaved-modal');
+    const unsavedSaveBtn = document.getElementById('unsaved-save');
+    const unsavedDiscardBtn = document.getElementById('unsaved-discard');
+    const unsavedCancelBtn = document.getElementById('unsaved-cancel');
+    const unsavedCloseBtn = unsavedModal.querySelector('.close-button');
+
     const imageModal = document.getElementById('image-modal');
     const imageModalCloseBtn = imageModal.querySelector('.close-button');
     const modalImage = document.getElementById('modal-image');
@@ -66,9 +72,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let isScrollingFromPreview = false;
     let scrollSyncTimeout;
     let showHiddenFiles = localStorage.getItem('mdiki_show_hidden') === 'true';
+    let resolveUnsavedAction = null;
 
     function isDirty() {
         return editor.value !== lastSavedContent;
+    }
+
+    function closeUnsavedModal(action = 'cancel') {
+        if (unsavedModal.style.display === 'block') {
+            unsavedModal.style.display = 'none';
+        }
+        if (resolveUnsavedAction) {
+            resolveUnsavedAction(action);
+            resolveUnsavedAction = null;
+        }
+    }
+
+    function showUnsavedModal() {
+        return new Promise((resolve) => {
+            resolveUnsavedAction = resolve;
+            unsavedModal.style.display = 'block';
+        });
     }
 
     function utf8_to_b64(str) {
@@ -77,11 +101,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function confirmAndSave() {
         if (!isDirty()) return true;
-        if (confirm('You have unsaved changes. Save and continue?')) {
+        const action = await showUnsavedModal();
+        if (action === 'save') {
             return await saveFile();
+        }
+        if (action === 'discard') {
+            return true;
         }
         return false;
     }
+
+    unsavedSaveBtn.onclick = () => closeUnsavedModal('save');
+    unsavedDiscardBtn.onclick = () => closeUnsavedModal('discard');
+    unsavedCancelBtn.onclick = () => closeUnsavedModal('cancel');
+    unsavedCloseBtn.onclick = () => closeUnsavedModal('cancel');
 
     async function loadFileList() {
         const res = await fetch('api/files.php?action=list');
@@ -781,6 +814,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (event.target == imageModal) {
             imageModal.style.display = 'none';
+        }
+        if (event.target == unsavedModal) {
+            closeUnsavedModal('cancel');
         }
     };
 
