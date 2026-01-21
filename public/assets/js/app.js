@@ -798,6 +798,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cheatsheetBtn.onclick = () => {
         cheatsheetModal.style.display = 'block';
+
+        // Add copy functionality to pre tags in cheatsheet
+        const preElements = cheatsheetModal.querySelectorAll('pre');
+        preElements.forEach(pre => {
+            if (pre.dataset.copyInitialized) return;
+            pre.dataset.copyInitialized = 'true';
+
+            pre.addEventListener('click', () => {
+                const text = pre.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    pre.classList.add('copied');
+                    setTimeout(() => {
+                        pre.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        });
     };
 
     closeBtn.onclick = () => {
