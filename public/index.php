@@ -18,6 +18,14 @@ $files = $fm->listFiles();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mdiki - Public View</title>
+    <!-- OGP Settings -->
+    <meta property="og:title" content="mdiki - Simple File-based Wiki">
+    <meta property="og:type" content="article">
+    <meta property="og:description"
+        content="A simple, lightweight markdown file-based wiki system with Material Design.">
+    <meta property="og:image" content="https://mdiki.tetsuakibaba.jp/assets/images/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
