@@ -175,6 +175,41 @@ $files = $fm->listFiles();
             flex: 1;
         }
 
+        .file-actions {
+            display: none;
+            gap: 4px;
+            background: transparent;
+            padding-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .nav-item:hover .file-actions {
+            display: flex;
+        }
+
+        .copy-item-btn {
+            background: none;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .copy-item-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--text-color);
+        }
+
+        .copy-item-btn.copy-success {
+            color: #28a745;
+        }
+
         .dir-group {
             margin-bottom: 8px;
         }
@@ -382,6 +417,9 @@ $files = $fm->listFiles();
                                 echo '<a href="index.php?file=' . urlencode($item['path']) . '" class="nav-item ' . $isActive . '" title="' . htmlspecialchars($item['name']) . '">';
                                 echo '<span class="material-icons">article</span>';
                                 echo '<span>' . htmlspecialchars($item['name']) . '</span>';
+                                echo '<div class="file-actions">';
+                                echo '<button class="copy-item-btn material-icons" title="Copy Public Link" onclick="event.preventDefault(); event.stopPropagation(); copyPublicLink(\'' . addslashes($item['path']) . '\', this)">link</button>';
+                                echo '</div>';
                                 echo '</a>';
                             }
                         }
@@ -432,6 +470,26 @@ $files = $fm->listFiles();
 
         menuBtn.addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
+
+        function showSuccess(btn) {
+            const originalIcon = btn.textContent;
+            btn.textContent = 'done';
+            btn.classList.add('copy-success');
+            setTimeout(() => {
+                btn.textContent = originalIcon;
+                btn.classList.remove('copy-success');
+            }, 2000);
+        }
+
+        function copyPublicLink(path, btn = null) {
+            const url = new URL('view.html', window.location.href);
+            url.searchParams.set('file', path);
+            navigator.clipboard.writeText(url.href).then(() => {
+                if (btn) {
+                    showSuccess(btn);
+                }
+            });
+        }
 
         // Sidebar resizing
         let isResizing = false;
