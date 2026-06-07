@@ -2,14 +2,19 @@
 require_once __DIR__ . '/../mdiki-src/Utils.php';
 require_once __DIR__ . '/../mdiki-src/version.php';
 require_once __DIR__ . '/../mdiki-src/FileManager.php';
+require_once __DIR__ . '/../mdiki-src/Auth.php';
 
 $config = require __DIR__ . '/../mdiki-config.php';
 
 use Mdiki\FileManager;
+use Mdiki\Auth;
 use Mdiki\AppInfo;
 
+$auth = new Auth($config);
+$isAuthenticated = $auth->isAuthenticated();
 $fm = new FileManager($config['mdiki_root']);
-$files = $fm->listFiles();
+$files = $isAuthenticated ? $fm->listFiles() : [];
+$currentFile = $_GET['file'] ?? 'index.md';
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -383,72 +388,75 @@ $files = $fm->listFiles();
 
 <body>
     <div id="app">
-        <div class="sidebar-overlay" id="overlay"></div>
-        <aside id="sidebar">
-            <div class="sidebar-header">
-                <a href="index.php" class="logo-container">
-                    <span class="material-icons logo-icon"><?= htmlspecialchars($config['site_icon'] ?? 'description') ?></span>
-                    <span class="logo-text"><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></span>
-                </a>
-            </div>
-            <div class="nav-container">
-                <?php
-                function isDescendantActive($items, $activePath)
-                {
-                    foreach ($items as $item) {
-                        if ($item['path'] === $activePath) return true;
-                        if ($item['is_dir'] && isDescendantActive($item['children'], $activePath)) return true;
+        <?php if ($isAuthenticated): ?>
+            <div class="sidebar-overlay" id="overlay"></div>
+            <aside id="sidebar">
+                <div class="sidebar-header">
+                    <a href="index.php" class="logo-container">
+                        <span class="material-icons logo-icon"><?= htmlspecialchars($config['site_icon'] ?? 'description') ?></span>
+                        <span class="logo-text"><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></span>
+                    </a>
+                </div>
+                <div class="nav-container">
+                    <?php
+                    function isDescendantActive($items, $activePath)
+                    {
+                        foreach ($items as $item) {
+                            if ($item['path'] === $activePath) return true;
+                            if ($item['is_dir'] && isDescendantActive($item['children'], $activePath)) return true;
+                        }
+                        return false;
                     }
-                    return false;
-                }
 
-                function renderMaterialMenu($items, $activePath = '', $isRoot = true)
-                {
-                    foreach ($items as $item) {
-                        if ($item['is_dir']) {
-                            // Root level folders are expanded by default
-                            $isCollapsed = !$isRoot && !isDescendantActive($item['children'], $activePath);
-                            $collapsedClass = $isCollapsed ? 'collapsed' : '';
-                            echo '<div class="dir-group ' . $collapsedClass . '">';
-                            echo '<div class="dir-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" title="' . htmlspecialchars($item['name']) . '">';
-                            echo '<span class="material-icons toggle-icon">expand_more</span>';
-                            echo '<span>' . htmlspecialchars($item['name']) . '</span>';
-                            echo '</div>';
-                            echo '<div class="dir-children">';
-                            renderMaterialMenu($item['children'], $activePath, false);
-                            echo '</div>';
-                            echo '</div>';
-                        } else {
-                            $ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));
-                            if ($ext === 'md') {
-                                $isActive = ($item['path'] === $activePath) ? 'active' : '';
-                                echo '<a href="index.php?file=' . urlencode($item['path']) . '" class="nav-item ' . $isActive . '" title="' . htmlspecialchars($item['name']) . '">';
-                                echo '<span class="material-icons">article</span>';
+                    function renderMaterialMenu($items, $activePath = '', $isRoot = true)
+                    {
+                        foreach ($items as $item) {
+                            if ($item['is_dir']) {
+                                // Root level folders are expanded by default
+                                $isCollapsed = !$isRoot && !isDescendantActive($item['children'], $activePath);
+                                $collapsedClass = $isCollapsed ? 'collapsed' : '';
+                                echo '<div class="dir-group ' . $collapsedClass . '">';
+                                echo '<div class="dir-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" title="' . htmlspecialchars($item['name']) . '">';
+                                echo '<span class="material-icons toggle-icon">expand_more</span>';
                                 echo '<span>' . htmlspecialchars($item['name']) . '</span>';
-                                echo '<div class="file-actions">';
-                                echo '<button class="copy-item-btn material-icons" title="Copy Public Link" onclick="event.preventDefault(); event.stopPropagation(); copyPublicLink(\'' . addslashes($item['path']) . '\', this)">link</button>';
                                 echo '</div>';
-                                echo '</a>';
+                                echo '<div class="dir-children">';
+                                renderMaterialMenu($item['children'], $activePath, false);
+                                echo '</div>';
+                                echo '</div>';
+                            } else {
+                                $ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));
+                                if ($ext === 'md') {
+                                    $isActive = ($item['path'] === $activePath) ? 'active' : '';
+                                    echo '<a href="index.php?file=' . urlencode($item['path']) . '" class="nav-item ' . $isActive . '" title="' . htmlspecialchars($item['name']) . '">';
+                                    echo '<span class="material-icons">article</span>';
+                                    echo '<span>' . htmlspecialchars($item['name']) . '</span>';
+                                    echo '<div class="file-actions">';
+                                    echo '<button class="copy-item-btn material-icons" title="Copy Public Link" onclick="event.preventDefault(); event.stopPropagation(); copyPublicLink(\'' . addslashes($item['path']) . '\', this)">link</button>';
+                                    echo '</div>';
+                                    echo '</a>';
+                                }
                             }
                         }
                     }
-                }
-                $currentFile = $_GET['file'] ?? 'index.md';
-                renderMaterialMenu($files, $currentFile);
-                ?>
-            </div>
-            <?php if (!empty($config['default_license'])): ?>
-                <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
-                    <div><?= htmlspecialchars($config['default_license']) ?></div>
-                    <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
+                    renderMaterialMenu($files, $currentFile);
+                    ?>
                 </div>
-            <?php endif; ?>
-        </aside>
-        <div id="sidebar-resizer"></div>
+                <?php if (!empty($config['default_license'])): ?>
+                    <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
+                        <div><?= htmlspecialchars($config['default_license']) ?></div>
+                        <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
+                    </div>
+                <?php endif; ?>
+            </aside>
+            <div id="sidebar-resizer"></div>
+        <?php endif; ?>
 
         <main id="main-content">
             <header>
-                <button class="material-icons menu-toggle" id="menu-btn">menu</button>
+                <?php if ($isAuthenticated): ?>
+                    <button class="material-icons menu-toggle" id="menu-btn">menu</button>
+                <?php endif; ?>
                 <div class="current-file-title">
                     <?= htmlspecialchars(basename($currentFile)) ?>
                 </div>
@@ -472,12 +480,17 @@ $files = $fm->listFiles();
         const resizer = document.getElementById('sidebar-resizer');
 
         function toggleSidebar() {
+            if (!sidebar || !overlay) return;
             sidebar.classList.toggle('open');
             overlay.classList.toggle('show');
         }
 
-        menuBtn.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
+        if (menuBtn) {
+            menuBtn.addEventListener('click', toggleSidebar);
+        }
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
 
         function showSuccess(btn) {
             const originalIcon = btn.textContent;
@@ -502,14 +515,16 @@ $files = $fm->listFiles();
         // Sidebar resizing
         let isResizing = false;
 
-        resizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            document.body.classList.add('resizing');
-            resizer.classList.add('resizing');
-        });
+        if (resizer) {
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                document.body.classList.add('resizing');
+                resizer.classList.add('resizing');
+            });
+        }
 
         document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
+            if (!isResizing || !sidebar) return;
             const newWidth = e.clientX;
             if (newWidth > 150 && newWidth < 600) {
                 sidebar.style.width = `${newWidth}px`;
@@ -521,13 +536,15 @@ $files = $fm->listFiles();
             if (isResizing) {
                 isResizing = false;
                 document.body.classList.remove('resizing');
-                resizer.classList.remove('resizing');
+                if (resizer) {
+                    resizer.classList.remove('resizing');
+                }
             }
         });
 
         // 画面サイズが変わった時にサイドバーの状態をリセット
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
+            if (window.innerWidth > 768 && sidebar && overlay) {
                 sidebar.classList.remove('open');
                 overlay.classList.remove('show');
             }
