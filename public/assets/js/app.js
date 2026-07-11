@@ -796,25 +796,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    async function copyCheatsheetSample(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+    }
+
+    cheatsheetModal.querySelectorAll('.cheat-sheet-item pre').forEach(pre => {
+        const sample = document.createElement('div');
+        sample.className = 'cheat-sheet-sample';
+        pre.parentNode.insertBefore(sample, pre);
+        sample.appendChild(pre);
+
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.className = 'cheat-sheet-copy-button';
+        copyButton.title = 'Copy sample';
+        copyButton.setAttribute('aria-label', 'Copy sample code');
+        copyButton.innerHTML = '<span class="material-icons" aria-hidden="true">content_copy</span><span>Copy</span>';
+        sample.appendChild(copyButton);
+
+        copyButton.addEventListener('click', async () => {
+            try {
+                await copyCheatsheetSample(pre.textContent);
+                copyButton.classList.add('copied');
+                copyButton.innerHTML = '<span class="material-icons" aria-hidden="true">done</span><span>Copied</span>';
+                setTimeout(() => {
+                    copyButton.classList.remove('copied');
+                    copyButton.innerHTML = '<span class="material-icons" aria-hidden="true">content_copy</span><span>Copy</span>';
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to copy the Markdown sample:', error);
+            }
+        });
+    });
+
     cheatsheetBtn.onclick = () => {
         cheatsheetModal.style.display = 'block';
-
-        // Add copy functionality to pre tags in cheatsheet
-        const preElements = cheatsheetModal.querySelectorAll('pre');
-        preElements.forEach(pre => {
-            if (pre.dataset.copyInitialized) return;
-            pre.dataset.copyInitialized = 'true';
-
-            pre.addEventListener('click', () => {
-                const text = pre.innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    pre.classList.add('copied');
-                    setTimeout(() => {
-                        pre.classList.remove('copied');
-                    }, 2000);
-                });
-            });
-        });
     };
 
     closeBtn.onclick = () => {
