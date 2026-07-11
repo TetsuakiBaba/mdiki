@@ -298,13 +298,17 @@ body.resizing iframe {
 }
 
 .cheat-sheet-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    columns: 320px;
+    column-gap: 16px;
     margin-top: 24px;
 }
 
 .cheat-sheet-item {
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+    break-inside: avoid;
+    margin: 0 0 16px;
     background: #fff;
     border: 1px solid #dadce0;
     border-radius: 8px;
@@ -334,7 +338,7 @@ body.resizing iframe {
 
 .cheat-sheet-item pre {
     background: #f8f9fa;
-    padding: 12px;
+    padding: 44px 12px 12px;
     border-radius: 4px;
     font-size: 13px;
     white-space: pre-wrap;
@@ -343,39 +347,46 @@ body.resizing iframe {
     color: #37474f;
     font-family: 'Roboto Mono', monospace;
     margin: 0;
-    cursor: copy;
-    position: relative;
     transition: background 0.2s;
 }
 
-.cheat-sheet-item pre:hover {
-    background: #f1f3f4;
+.cheat-sheet-sample {
+    position: relative;
 }
 
-.cheat-sheet-item pre::after {
-    content: 'content_copy';
-    font-family: 'Material Icons';
+.cheat-sheet-copy-button {
     position: absolute;
     top: 8px;
     right: 8px;
-    font-size: 16px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
     color: #5f6368;
-    opacity: 0;
-    transition: opacity 0.2s;
+    font: 500 12px 'Roboto', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
 }
 
-.cheat-sheet-item pre:hover::after {
-    opacity: 1;
+.cheat-sheet-copy-button .material-icons {
+    font-size: 16px;
 }
 
-.cheat-sheet-item pre.copied {
+.cheat-sheet-copy-button:hover,
+.cheat-sheet-copy-button:focus-visible {
     background: #e8f0fe;
+    color: var(--primary-color);
+    outline: none;
 }
 
-.cheat-sheet-item pre.copied::after {
-    content: 'done';
-    color: #1a73e8;
-    opacity: 1;
+.cheat-sheet-copy-button.copied {
+    background: #e6f4ea;
+    border-color: #ceead6;
+    color: #137333;
 }
 
 #markdown-editor {

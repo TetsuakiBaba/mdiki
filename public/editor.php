@@ -290,9 +290,25 @@ lisence: CC BY 4.0</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Images</h3>
-                    <p>Captions and width specification are supported. Figures are auto-numbered.</p>
+                    <p>Captions, width specification, and side-by-side image groups are supported. Figures are auto-numbered.</p>
                     <pre>![Caption](image.jpg)
-![](image.jpg){width="50%"}</pre>
+![](image.jpg){width="50%"}
+
+:::images
+![Left image](image-left.jpg)
+![Right image](image-right.jpg)
+:::</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Timeline</h3>
+                    <p>Dates accept YYYY, YYYYMM, or YYYYMMDD. Use order=desc to reverse the order.</p>
+                    <pre>:::timeline order=asc
+era: 2024..2025 | Prototype period
+
+item: 20240115
+description: The project started.
+image: image.jpg
+:::</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Lists</h3>
@@ -309,10 +325,24 @@ lisence: CC BY 4.0</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Footnotes</h3>
-                    <p>Automatically placed at the end of the current heading section.</p>
-                    <pre>Add a footnote[^1] in the text.
+                    <p>Both LaTeX-style and reference-style footnotes are supported and placed at the end of the current heading section.</p>
+                    <pre>Add a footnote \footnote{Footnote content.}
+
+Add a footnote[^1] in the text.
 
 [^1]: Footnote content.</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Links &amp; Auto URLs</h3>
+                    <p>Plain HTTP, HTTPS, and FTP URLs are automatically converted to links.</p>
+                    <pre>[Link text](https://example.com)
+https://example.com
+ftp://example.com/file.zip</pre>
+                </div>
+                <div class="cheat-sheet-item">
+                    <h3>Blockquotes</h3>
+                    <pre>&gt; This is a regular blockquote.
+&gt; It can continue on multiple lines.</pre>
                 </div>
                 <div class="cheat-sheet-item">
                     <h3>Embedded Content</h3>
