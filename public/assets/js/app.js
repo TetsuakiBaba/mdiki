@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const isAnonymousEdit = typeof IS_ANONYMOUS_EDIT !== 'undefined' && IS_ANONYMOUS_EDIT === true;
+    const anonymousEditToken = typeof ANONYMOUS_EDIT_TOKEN !== 'undefined' ? ANONYMOUS_EDIT_TOKEN : '';
+    const anonymousEditPath = typeof ANONYMOUS_EDIT_PATH !== 'undefined' ? ANONYMOUS_EDIT_PATH : '';
+    const anonymousEditInactivityLifetime = typeof ANONYMOUS_EDIT_INACTIVITY_LIFETIME !== 'undefined' ? ANONYMOUS_EDIT_INACTIVITY_LIFETIME : 300;
+
     // Session Management Interceptor
     let isSessionAlertShowing = false;
     const originalFetch = window.fetch;
@@ -6,8 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await originalFetch(...args);
         if (response.status === 401 && !isSessionAlertShowing) {
             isSessionAlertShowing = true;
-            alert('セッションの有効期限が切れました。ログイン画面に戻ります。');
-            window.location.href = 'editor.php';
+            if (isAnonymousEdit) {
+                alert('この限定編集リンクは利用できません。');
+            } else {
+                alert('セッションの有効期限が切れました。ログイン画面に戻ります。');
+                window.location.href = 'editor.php';
+            }
         }
         return response;
     };
@@ -36,20 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageModalCloseBtn = imageModal.querySelector('.close-button');
     const modalImage = document.getElementById('modal-image');
     const modalImageName = document.getElementById('modal-image-name');
+    const anonymousLockNotice = document.getElementById('anonymous-lock-notice');
+    const anonymousEditStatus = document.getElementById('anonymous-edit-status');
+    const anonymousInactivityWarning = document.getElementById('anonymous-inactivity-warning');
 
     const sidebar = document.getElementById('sidebar');
     const resizer = document.getElementById('sidebar-resizer');
 
     let isResizing = false;
 
-    resizer.addEventListener('mousedown', (e) => {
-        isResizing = true;
-        document.body.classList.add('resizing');
-        resizer.classList.add('resizing');
-    });
+    if (resizer && sidebar) {
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.classList.add('resizing');
+            resizer.classList.add('resizing');
+        });
+    }
 
     document.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
+        if (!isResizing || !sidebar) return;
         const newWidth = e.clientX;
         if (newWidth > 150 && newWidth < 600) {
             sidebar.style.width = `${newWidth}px`;
@@ -60,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mouseup', () => {
         isResizing = false;
         document.body.classList.remove('resizing');
-        resizer.classList.remove('resizing');
+        if (resizer) resizer.classList.remove('resizing');
     });
 
     let currentPath = '';
@@ -73,6 +87,101 @@ document.addEventListener('DOMContentLoaded', () => {
     let scrollSyncTimeout;
     let showHiddenFiles = localStorage.getItem('mdiki_show_hidden') === 'true';
     let resolveUnsavedAction = null;
+    let isAnonymousEditLocked = false;
+    let lastAnonymousActivityAt = Date.now();
+    let anonymousLockCheckInFlight = false;
+    const anonymousInactivityLimit = anonymousEditInactivityLifetime * 1000;
+    const anonymousInactivityWarningThreshold = 60 * 1000;
+
+    function showAnonymousLockNotice(message = '') {
+        if (!isAnonymousEdit) return;
+        isAnonymousEditLocked = true;
+        editor.readOnly = true;
+        editor.classList.add('readonly');
+        saveBtn.disabled = true;
+        saveBtn.title = 'Locked';
+        hideAnonymousInactivityWarning();
+        if (anonymousLockNotice) {
+            const text = anonymousLockNotice.querySelector('span:not(.material-icons)');
+            if (text && message) {
+                text.textContent = message;
+            }
+            anonymousLockNotice.hidden = false;
+        }
+    }
+
+    function enableAnonymousEditing() {
+        if (!isAnonymousEdit) return;
+        isAnonymousEditLocked = false;
+        editor.readOnly = false;
+        editor.classList.remove('readonly');
+        saveBtn.disabled = false;
+        saveBtn.title = 'Save';
+        if (anonymousLockNotice) {
+            anonymousLockNotice.hidden = true;
+        }
+        updateAnonymousInactivityWarning();
+    }
+
+    function setAnonymousViewerCount(count) {
+        if (!anonymousEditStatus) return;
+        const text = anonymousEditStatus.querySelector('span:not(.material-icons)');
+        if (text) {
+            text.textContent = `この編集リンクを開いている人: ${count}人`;
+        }
+        anonymousEditStatus.hidden = false;
+    }
+
+    function hideAnonymousInactivityWarning() {
+        if (anonymousInactivityWarning) {
+            anonymousInactivityWarning.hidden = true;
+        }
+    }
+
+    function updateAnonymousInactivityWarning() {
+        if (!isAnonymousEdit || isAnonymousEditLocked) {
+            hideAnonymousInactivityWarning();
+            return;
+        }
+
+        const remainingMs = anonymousInactivityLimit - (Date.now() - lastAnonymousActivityAt);
+        if (remainingMs <= 0) {
+            hideAnonymousInactivityWarning();
+            checkAnonymousEditLock();
+            return;
+        }
+
+        if (remainingMs > anonymousInactivityWarningThreshold) {
+            hideAnonymousInactivityWarning();
+            return;
+        }
+
+        if (anonymousInactivityWarning) {
+            const remainingSeconds = Math.ceil(remainingMs / 1000);
+            const text = anonymousInactivityWarning.querySelector('span:not(.material-icons)');
+            if (text) {
+                text.textContent = `このまま操作がなければ${remainingSeconds}秒後に編集権を手放します。現状の内容を保存する場合は、作業内容を保存してください。`;
+            }
+            anonymousInactivityWarning.hidden = false;
+        }
+    }
+
+    function isAnonymousActive() {
+        return Date.now() - lastAnonymousActivityAt < anonymousInactivityLimit;
+    }
+
+    function markAnonymousActivity() {
+        if (!isAnonymousEdit) return;
+        lastAnonymousActivityAt = Date.now();
+        hideAnonymousInactivityWarning();
+        if (isAnonymousEditLocked) {
+            checkAnonymousEditLock();
+        }
+    }
+
+    if (isAnonymousEdit) {
+        showAnonymousLockNotice('編集状態を確認しています。ファイル内容は閲覧できます。');
+    }
 
     function isDirty() {
         return editor.value !== lastSavedContent;
@@ -117,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     unsavedCloseBtn.onclick = () => closeUnsavedModal('cancel');
 
     async function loadFileList() {
+        if (!fileTree) return;
         const res = await fetch('api/files.php?action=list');
         const files = await res.json();
         renderFileTree(files, fileTree, true);
@@ -332,6 +442,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         copyPublicLink(file.path, copyItemBtn);
                     };
                     actionsDiv.appendChild(copyItemBtn);
+
+                    const copyEditItemBtn = document.createElement('button');
+                    copyEditItemBtn.textContent = 'vpn_key';
+                    copyEditItemBtn.className = 'copy-item-btn material-icons';
+                    copyEditItemBtn.title = 'Copy Edit Link';
+                    copyEditItemBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        copyEditLink(file.path, copyEditItemBtn);
+                    };
+                    actionsDiv.appendChild(copyEditItemBtn);
                 }
             }
 
@@ -453,7 +573,10 @@ document.addEventListener('DOMContentLoaded', () => {
             expandedFolders.add(currentLevel);
         }
 
-        const res = await fetch(`api/files.php?action=get&path=${encodeURIComponent(path)}`);
+        const url = isAnonymousEdit
+            ? `api/files.php?action=get&edit_token=${encodeURIComponent(anonymousEditToken)}`
+            : `api/files.php?action=get&path=${encodeURIComponent(path)}`;
+        const res = await fetch(url);
         if (!res.ok) return; // ファイルが存在しない場合は何もしない
         const data = await res.json();
         if (data.content !== undefined) {
@@ -523,6 +646,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         e.stopPropagation();
         editor.classList.remove('drag-over');
+        if (isAnonymousEditLocked) {
+            showAnonymousLockNotice();
+            return;
+        }
 
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -548,6 +675,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function saveFile() {
+        if (isAnonymousEditLocked) {
+            showAnonymousLockNotice();
+            return false;
+        }
+
         let path = currentPath;
         if (!path) {
             const name = prompt('Enter file name (e.g. folder/note.md):');
@@ -563,6 +695,10 @@ document.addEventListener('DOMContentLoaded', () => {
             old_hash: currentHash,
             csrf_token: CSRF_TOKEN
         };
+        if (isAnonymousEdit) {
+            data.edit_token = anonymousEditToken;
+            data.path = anonymousEditPath;
+        }
 
         const res = await fetch('api/files.php', {
             method: 'POST',
@@ -591,9 +727,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             lastSavedContent = editor.value;
             filePathInput.value = path;
-            loadFileList();
+            if (!isAnonymousEdit) {
+                loadFileList();
+            }
             return true;
         } else {
+            if (isAnonymousEdit && res.status === 409) {
+                showAnonymousLockNotice(result.error || '他のユーザーがこの編集リンクを開いているため、この画面では編集・保存できません。時間をおいて再読み込みしてください。');
+                return false;
+            }
             alert('Save failed: ' + (result.error || 'Unknown error'));
             return false;
         }
@@ -601,6 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hidden files toggle
     function updateHiddenFilesUI() {
+        if (!toggleHiddenBtn) return;
         const icon = toggleHiddenBtn.querySelector('.material-icons');
         if (showHiddenFiles) {
             toggleHiddenBtn.classList.add('active');
@@ -612,12 +755,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateHiddenFilesUI();
 
-    toggleHiddenBtn.onclick = () => {
-        showHiddenFiles = !showHiddenFiles;
-        localStorage.setItem('mdiki_show_hidden', showHiddenFiles);
-        updateHiddenFilesUI();
-        loadFileList();
-    };
+    if (toggleHiddenBtn) {
+        toggleHiddenBtn.onclick = () => {
+            showHiddenFiles = !showHiddenFiles;
+            localStorage.setItem('mdiki_show_hidden', showHiddenFiles);
+            updateHiddenFilesUI();
+            loadFileList();
+        };
+    }
 
     saveBtn.onclick = async () => {
         if (await saveFile()) {
@@ -678,7 +823,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    newFileBtn.onclick = () => createNewFile();
+    if (newFileBtn) {
+        newFileBtn.onclick = () => createNewFile();
+    }
 
     async function createNewFolder(parentDir = '') {
         const name = prompt('Enter folder name:');
@@ -711,7 +858,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    newFolderBtn.onclick = () => createNewFolder();
+    if (newFolderBtn) {
+        newFolderBtn.onclick = () => createNewFolder();
+    }
 
     async function handleImageUpload(file, useDotData = false) {
         if (file.size > MAX_UPLOAD_SIZE * 1024 * 1024) {
@@ -723,6 +872,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('action', 'upload');
         formData.append('image', file);
         formData.append('csrf_token', CSRF_TOKEN);
+        if (isAnonymousEdit) {
+            formData.append('edit_token', anonymousEditToken);
+        }
 
         const currentDir = currentPath ? currentPath.split('/').slice(0, -1).join('/') : '';
         let targetDir = currentDir;
@@ -746,13 +898,19 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.value = editor.value.substring(0, start) + imageMarkdown + editor.value.substring(end);
             editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
             updatePreview();
-            loadFileList();
+            if (!isAnonymousEdit) {
+                loadFileList();
+            }
         } else {
             let errorMsg = 'Unknown error';
             const contentType = res.headers.get("content-type");
             if (contentType && contentType.includes("application/json")) {
                 const data = await res.json();
                 errorMsg = data.error || errorMsg;
+                if (isAnonymousEdit && res.status === 409) {
+                    showAnonymousLockNotice(errorMsg);
+                    return;
+                }
             } else {
                 const text = await res.text();
                 errorMsg = `Server returned ${res.status}. ${text.substring(0, 100)}...`;
@@ -782,19 +940,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function copyEditLink(path, btn = null) {
+        const res = await fetch('api/files.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'create_edit_link',
+                path: path,
+                csrf_token: CSRF_TOKEN
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert('編集リンクの作成に失敗しました: ' + (data.error || 'Unknown error'));
+            return;
+        }
+
+        const url = new URL('editor.php', window.location.href);
+        url.searchParams.set('edit_token', data.token);
+        navigator.clipboard.writeText(url.href).then(() => {
+            if (btn) {
+                showSuccess(btn);
+            }
+        });
+    }
+
     copyLinkBtn.onclick = () => {
         if (!currentPath) {
             alert('Please save the file first.');
             return;
         }
+        if (isAnonymousEdit) {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showSuccess(copyLinkBtn);
+            });
+            return;
+        }
         copyPublicLink(currentPath, copyLinkBtn);
     };
 
-    logoutBtn.onclick = async () => {
-        if (await confirmAndSave()) {
-            window.location.href = 'api/auth.php?action=logout';
-        }
-    };
+    if (logoutBtn) {
+        logoutBtn.onclick = async () => {
+            if (await confirmAndSave()) {
+                window.location.href = 'api/auth.php?action=logout';
+            }
+        };
+    }
 
     async function copyCheatsheetSample(text) {
         if (navigator.clipboard && window.isSecureContext) {
@@ -880,6 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isScrollingFromPreview = false;
             }, 100);
         } else if (e.data && e.data.type === 'open_file') {
+            if (isAnonymousEdit) return;
             if (await confirmAndSave()) {
                 loadFile(e.data.path);
             }
@@ -890,17 +1084,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    loadFileList();
-
-    // Check for file parameter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const fileParam = urlParams.get('file');
-    if (fileParam) {
-        loadFile(fileParam);
-        // Clean up URL without reloading
-        window.history.replaceState({}, document.title, window.location.pathname);
+    if (isAnonymousEdit) {
+        loadFile(anonymousEditPath);
     } else {
-        loadFile('index.md');
+        loadFileList();
+
+        // Check for file parameter in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileParam = urlParams.get('file');
+        if (fileParam) {
+            loadFile(fileParam);
+            // Clean up URL without reloading
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            loadFile('index.md');
+        }
     }
 
     window.addEventListener('beforeunload', (e) => {
@@ -919,6 +1117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
+            if (editor.readOnly) return;
             e.preventDefault();
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
@@ -930,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Session Management
     function setupSessionCheck() {
+        if (isAnonymousEdit) return;
         const checkInterval = 10 * 1000; // 10秒ごとにチェック
         setInterval(async () => {
             try {
@@ -942,4 +1142,70 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupSessionCheck();
+
+    async function checkAnonymousEditLock() {
+        if (!isAnonymousEdit) return;
+        if (anonymousLockCheckInFlight) return;
+        anonymousLockCheckInFlight = true;
+
+        try {
+            const active = isAnonymousActive();
+            const res = await fetch('api/files.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'refresh_lock',
+                    edit_token: anonymousEditToken,
+                    active: active
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.valid) {
+                showAnonymousLockNotice('この限定編集リンクは利用できません。');
+                return;
+            }
+
+            setAnonymousViewerCount(data.viewer_count || 1);
+            if (data.can_edit) {
+                enableAnonymousEditing();
+            } else if (!active) {
+                showAnonymousLockNotice('しばらく操作がないため編集権を解放しました。編集を再開するには画面をクリックしてください。ファイル内容は閲覧できます。');
+            } else {
+                showAnonymousLockNotice('他のユーザーが編集中のため、現在は読み取り専用です。ファイル内容は閲覧できます。');
+            }
+        } catch (e) {
+            console.error('Anonymous edit lock check failed', e);
+        } finally {
+            anonymousLockCheckInFlight = false;
+        }
+    }
+
+    function setupAnonymousEditLock() {
+        if (!isAnonymousEdit) return;
+
+        ['mousedown', 'keydown', 'touchstart'].forEach((eventName) => {
+            window.addEventListener(eventName, markAnonymousActivity, {
+                passive: true
+            });
+        });
+
+        checkAnonymousEditLock();
+        setInterval(checkAnonymousEditLock, 30000);
+        setInterval(updateAnonymousInactivityWarning, 1000);
+
+        window.addEventListener('unload', () => {
+            const payload = JSON.stringify({
+                action: 'release_lock',
+                edit_token: anonymousEditToken
+            });
+            navigator.sendBeacon('api/files.php', new Blob([payload], {
+                type: 'application/json'
+            }));
+        });
+    }
+
+    setupAnonymousEditLock();
 });

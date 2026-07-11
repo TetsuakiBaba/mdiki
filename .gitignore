@@ -8,3 +8,5 @@ vendor/
 config.php
 *.ignore.*
 resources/
+.mdiki-data/
+upload.txt

@@ -3,16 +3,28 @@ require_once __DIR__ . '/../mdiki-src/Utils.php';
 require_once __DIR__ . '/../mdiki-src/version.php';
 require_once __DIR__ . '/../mdiki-src/Auth.php';
 require_once __DIR__ . '/../mdiki-src/FileManager.php';
+require_once __DIR__ . '/../mdiki-src/ShareManager.php';
 
 $config = require __DIR__ . '/../mdiki-config.php';
 
 use Mdiki\Auth;
 use Mdiki\Utils;
 use Mdiki\AppInfo;
+use Mdiki\ShareManager;
 
 $auth = new Auth($config);
+$shares = new ShareManager($config['data_dir'] ?? (__DIR__ . '/../.mdiki-data'), $config['edit_lock_lifetime'] ?? 120);
+$editToken = $_GET['edit_token'] ?? '';
+$anonymousEditPath = $shares->resolveToken($editToken);
+$isAnonymousEdit = $anonymousEditPath !== null;
 
-if (!$auth->isAuthenticated()) {
+if ($isAnonymousEdit) {
+    if (empty($_SESSION['anonymous_edit_owner'])) {
+        $_SESSION['anonymous_edit_owner'] = bin2hex(random_bytes(32));
+    }
+}
+
+if (!$auth->isAuthenticated() && !$isAnonymousEdit) {
     // Simple login page
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
         if ($auth->login($_POST['password'])) {
@@ -190,27 +202,45 @@ if (!$auth->isAuthenticated()) {
                 <span><?= htmlspecialchars($config['site_title'] ?? 'mdiki') ?></span>
             </a>
             <div class="toolbar">
-                <button id="new-file" title="New File"><span class="material-icons">note_add</span></button>
-                <button id="new-folder" title="New Folder"><span class="material-icons">create_new_folder</span></button>
-                <button id="toggle-hidden" title="Toggle Hidden Files"><span class="material-icons">visibility_off</span></button>
+                <?php if (!$isAnonymousEdit): ?>
+                    <button id="new-file" title="New File"><span class="material-icons">note_add</span></button>
+                    <button id="new-folder" title="New Folder"><span class="material-icons">create_new_folder</span></button>
+                    <button id="toggle-hidden" title="Toggle Hidden Files"><span class="material-icons">visibility_off</span></button>
+                <?php endif; ?>
                 <button id="save-file" title="Save"><span class="material-icons">save</span></button>
                 <button id="copy-link" title="Copy Link"><span class="material-icons">link</span></button>
                 <button id="show-cheatsheet" title="About & Help"><span class="material-icons">info</span></button>
-                <button id="logout" title="Logout"><span class="material-icons">logout</span></button>
+                <?php if (!$isAnonymousEdit): ?>
+                    <button id="logout" title="Logout"><span class="material-icons">logout</span></button>
+                <?php endif; ?>
             </div>
         </header>
         <main>
-            <aside id="sidebar">
-                <div id="file-tree"></div>
-                <?php if (!empty($config['default_license'])): ?>
-                    <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
-                        <div><?= htmlspecialchars($config['default_license']) ?></div>
-                        <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
-                    </div>
-                <?php endif; ?>
-            </aside>
-            <div id="sidebar-resizer"></div>
+            <?php if (!$isAnonymousEdit): ?>
+                <aside id="sidebar">
+                    <div id="file-tree"></div>
+                    <?php if (!empty($config['default_license'])): ?>
+                        <div class="sidebar-footer" style="padding: 16px; font-size: 11px; color: #70757a; border-top: 1px solid #dadce0; line-height: 1.4;">
+                            <div><?= htmlspecialchars($config['default_license']) ?></div>
+                            <div style="margin-top: 4px; opacity: 0.7;">v<?= htmlspecialchars(AppInfo::VERSION) ?></div>
+                        </div>
+                    <?php endif; ?>
+                </aside>
+                <div id="sidebar-resizer"></div>
+            <?php endif; ?>
             <section id="editor-container">
+                <div id="anonymous-lock-notice" class="editor-notice lock-notice" hidden>
+                    <span class="material-icons">lock</span>
+                    <span>他のユーザーが編集中のため、現在は読み取り専用です。ファイル内容は閲覧できます。</span>
+                </div>
+                <div id="anonymous-edit-status" class="editor-notice status-notice" hidden>
+                    <span class="material-icons">group</span>
+                    <span>この編集リンクを開いている人: 1人</span>
+                </div>
+                <div id="anonymous-inactivity-warning" class="editor-notice warning-notice" hidden>
+                    <span class="material-icons">schedule</span>
+                    <span>このまま操作がなければ60秒後に編集権を手放します。現状の内容を保存する場合は、作業内容を保存してください。</span>
+                </div>
                 <div id="editor-header">
                     <input type="text" id="file-path" readonly>
                 </div>
@@ -413,6 +443,10 @@ console.log("Hello");
     <script>
         const CSRF_TOKEN = '<?= Utils::generateCSRFToken() ?>';
         const MAX_UPLOAD_SIZE = <?= (int)($config['max_upload_size'] ?? 10) ?>;
+        const IS_ANONYMOUS_EDIT = <?= $isAnonymousEdit ? 'true' : 'false' ?>;
+        const ANONYMOUS_EDIT_TOKEN = '<?= $isAnonymousEdit ? htmlspecialchars($editToken, ENT_QUOTES) : '' ?>';
+        const ANONYMOUS_EDIT_PATH = '<?= $isAnonymousEdit ? htmlspecialchars($anonymousEditPath, ENT_QUOTES) : '' ?>';
+        const ANONYMOUS_EDIT_INACTIVITY_LIFETIME = <?= (int)($config['anonymous_edit_inactivity_lifetime'] ?? 300) ?>;
     </script>
     <script src="assets/js/app.js"></script>
 </body>

@@ -8,6 +8,7 @@ $config = require __DIR__ . '/../mdiki-config.php';
 
 use Mdiki\FileManager;
 use Mdiki\Auth;
+use Mdiki\Utils;
 use Mdiki\AppInfo;
 
 $auth = new Auth($config);
@@ -410,6 +411,8 @@ $currentFile = $_GET['file'] ?? 'index.md';
 
                     function renderMaterialMenu($items, $activePath = '', $isRoot = true)
                     {
+                        global $isAuthenticated;
+
                         foreach ($items as $item) {
                             if ($item['is_dir']) {
                                 // Root level folders are expanded by default
@@ -433,6 +436,9 @@ $currentFile = $_GET['file'] ?? 'index.md';
                                     echo '<span>' . htmlspecialchars($item['name']) . '</span>';
                                     echo '<div class="file-actions">';
                                     echo '<button class="copy-item-btn material-icons" title="Copy Public Link" onclick="event.preventDefault(); event.stopPropagation(); copyPublicLink(\'' . addslashes($item['path']) . '\', this)">link</button>';
+                                    if ($isAuthenticated) {
+                                        echo '<button class="copy-item-btn material-icons" title="Copy Edit Link" onclick="event.preventDefault(); event.stopPropagation(); copyEditLink(\'' . addslashes($item['path']) . '\', this)">vpn_key</button>';
+                                    }
                                     echo '</div>';
                                     echo '</a>';
                                 }
@@ -474,6 +480,8 @@ $currentFile = $_GET['file'] ?? 'index.md';
     </div>
 
     <script>
+        const CSRF_TOKEN = '<?= $isAuthenticated ? Utils::generateCSRFToken() : '' ?>';
+        const CAN_CREATE_EDIT_LINK = <?= $isAuthenticated ? 'true' : 'false' ?>;
         const menuBtn = document.getElementById('menu-btn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
@@ -505,6 +513,37 @@ $currentFile = $_GET['file'] ?? 'index.md';
         function copyPublicLink(path, btn = null) {
             const url = new URL('view.html', window.location.href);
             url.searchParams.set('file', path);
+            navigator.clipboard.writeText(url.href).then(() => {
+                if (btn) {
+                    showSuccess(btn);
+                }
+            });
+        }
+
+        async function copyEditLink(path, btn = null) {
+            if (!CAN_CREATE_EDIT_LINK) {
+                return;
+            }
+
+            const res = await fetch('api/files.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'create_edit_link',
+                    path: path,
+                    csrf_token: CSRF_TOKEN
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert('編集リンクの作成に失敗しました: ' + (data.error || 'Unknown error'));
+                return;
+            }
+
+            const url = new URL('editor.php', window.location.href);
+            url.searchParams.set('edit_token', data.token);
             navigator.clipboard.writeText(url.href).then(() => {
                 if (btn) {
                     showSuccess(btn);

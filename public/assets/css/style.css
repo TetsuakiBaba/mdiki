@@ -163,6 +163,52 @@ body.resizing iframe {
     background: white;
 }
 
+.editor-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.editor-notice[hidden] {
+    display: none;
+}
+
+.editor-notice .material-icons {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.lock-notice {
+    background: #fef7e0;
+    color: #3c4043;
+}
+
+.lock-notice .material-icons {
+    color: #b06000;
+}
+
+.status-notice {
+    background: #e8f0fe;
+    color: #3c4043;
+}
+
+.status-notice .material-icons {
+    color: var(--primary-color);
+}
+
+.warning-notice {
+    background: #fce8e6;
+    color: #3c4043;
+}
+
+.warning-notice .material-icons {
+    color: #d93025;
+}
+
 #editor-header {
     height: 48px;
     padding: 0 16px;
@@ -199,6 +245,11 @@ body.resizing iframe {
     resize: none;
     outline: none;
     background: #fff;
+}
+
+#markdown-editor.readonly {
+    background: #f8f9fa;
+    color: #70757a;
 }
 
 #preview-frame {
